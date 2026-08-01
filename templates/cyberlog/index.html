@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Cyber Log - CyberShield Ghana{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Cyber Log</h2>
+    <a href="{{ url_for('report.start_report') }}" class="btn btn-report">+ New Report</a>
+</div>
+<div class="card p-3 mb-4">
+    <form method="GET" class="row g-2">
+        <div class="col-md-3">
+            <input type="text" class="form-control" name="search" placeholder="Search reports..." value="{{ search }}">
+        </div>
+        <div class="col-md-2">
+            <select class="form-select" name="category">
+                <option value="">All Categories</option>
+                {% for cat in categories %}
+                <option value="{{ cat }}"{{ " selected" if category_filter == cat }}>{{ cat }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select class="form-select" name="status">
+                <option value="">All Statuses</option>
+                {% for s in statuses %}
+                <option value="{{ s }}"{{ " selected" if status_filter == s }}>{{ s }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select class="form-select" name="sort">
+                <option value="newest"{{ " selected" if sort_by == "newest" }}>Newest</option>
+                <option value="oldest"{{ " selected" if sort_by == "oldest" }}>Oldest</option>
+                <option value="recently_updated"{{ " selected" if sort_by == "recently_updated" }}>Recently Updated</option>
+                <option value="status"{{ " selected" if sort_by == "status" }}>By Status</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-primary me-2">Filter</button>
+            <a href="{{ url_for('cyberlog.index') }}" class="btn btn-outline-light">Clear</a>
+        </div>
+    </form>
+</div>
+{% if incidents %}
+<div class="row">
+    {% for incident in incidents %}
+    <div class="col-md-6 mb-3">
+        <div class="card report-card p-3" onclick="window.location.href='{{ url_for('cyberlog.detail', incident_id=incident.incident_id) }}'">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h6 class="mb-1">{{ incident.category }}</h6>
+                    <small class="text-muted">{{ incident.incident_id }}</small>
+                </div>
+                <span class="badge badge-status badge-{{ incident.status }}">{{ incident.status }}</span>
+            </div>
+            <div class="mt-2">
+                <small class="text-muted">
+                    {{ incident.created_at.strftime('%b %d, %Y') }} |
+                    {{ incident.submissions.first().channel if incident.submissions.first() else 'N/A' }} |
+                    {{ incident.evidence.count() }} file(s)
+                </small>
+            </div>
+            {% if incident.description %}
+            <p class="mt-2 mb-0 text-muted small">{{ incident.description[:150] }}{{ "..." if incident.description|length > 150 }}</p>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card p-4 text-center">
+    <p class="text-muted">No reports found.</p>
+    <a href="{{ url_for('report.start_report') }}" class="btn btn-report">Report Your First Incident</a>
+</div>
+{% endif %}
+{% endblock %}

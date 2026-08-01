@@ -1,0 +1,19 @@
+CyberShield Ghana - License Agreement
+=====================================
+
+This is an independent application designed to facilitate reporting to the 
+Cyber Security Authority (CSA) of Ghana.
+
+This software is provided "as is", without warranty of any kind, express or 
+implied, including but not limited to the warranties of merchantability, 
+fitness for a particular purpose and noninfringement.
+
+This is not an official CSA application. It is designed to help users 
+report cyber incidents through official CSA channels.
+
+By installing and using this software, you agree to:
+1. Use it only for legitimate cybersecurity incident reporting
+2. Not misuse the reporting channels provided
+3. Understand that this is an unofficial tool facilitating official channels
+
+Copyright (c) 2026 CyberShield Ghana Team

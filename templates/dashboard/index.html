@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - CyberShield Ghana{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Welcome, {{ current_user.full_name.split()[0] }}</h2>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card">
+            <div class="stat-number">{{ stats.total }}</div>
+            <div class="stat-label">Total Reports</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card">
+            <div class="stat-number">{{ stats.await_confirm }}</div>
+            <div class="stat-label">Awaiting Confirmation</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card">
+            <div class="stat-number">{{ stats.successful }}</div>
+            <div class="stat-label">Successfully Submitted</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card">
+            <div class="stat-number">{{ stats.drafts }}</div>
+            <div class="stat-label">Drafts</div>
+        </div>
+    </div>
+</div>
+
+{% if stats.recent %}
+<div class="card mb-4">
+    <div class="card-header">Recently Submitted Report</div>
+    <div class="card-body">
+        <p><strong>Report ID:</strong> {{ stats.recent.incident_id }}</p>
+        <p><strong>Category:</strong> {{ stats.recent.category }}</p>
+        <p><strong>Status:</strong> {{ stats.recent.status }}</p>
+        <p><strong>Date:</strong> {{ stats.recent.created_at.strftime('%B %d, %Y') }}</p>
+        <a href="{{ url_for('cyberlog.detail', incident_id=stats.recent.incident_id) }}" class="btn btn-primary">View Details</a>
+    </div>
+</div>
+{% endif %}
+
+<div class="row">
+    <div class="col-md-6 mb-3">
+        <div class="card p-4">
+            <h5>📝 Report Cyber Incident</h5>
+            <p class="text-muted">Start a new cyber incident report by filling out the guided form step by step.</p>
+            <a href="{{ url_for('report.start_report') }}" class="btn btn-report">Report Cyber Incident</a>
+        </div>
+    </div>
+    <div class="col-md-6 mb-3">
+        <div class="card p-4">
+            <h5>📋 Cyber Log</h5>
+            <p class="text-muted">View your personal history of reported incidents, track status, and manage reports.</p>
+            <a href="{{ url_for('cyberlog.index') }}" class="btn btn-primary">View Cyber Log</a>
+        </div>
+    </div>
+</div>
+
+{% if status_counts %}
+<div class="card mt-4">
+    <div class="card-header">Reports by Status</div>
+    <div class="card-body">
+        {% set max_count = status_counts | map(attribute='count') | max %}
+        {% for item in status_counts %}
+        <div class="d-flex align-items-center mb-3">
+            <div class="text-muted small" style="width: 150px;">{{ item.label }}</div>
+            <div class="flex-grow-1 me-3" style="background-color: var(--bg-input); border-radius: 6px; overflow: hidden;">
+                <div class="chart-bar chart-bar-{{ item.label|lower|replace(' ', '-') }}" style="width: {{ (item.count / max_count * 100)|round|int }}%;"></div>
+            </div>
+            <div class="small fw-semibold" style="width: 30px; text-align: right;">{{ item.count }}</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<div class="card mt-4">
+    <div class="card-header">Quick Actions</div>
+    <div class="card-body">
+        <div class="row g-2">
+            <div class="col-6 col-md">
+                <a href="{{ url_for('profile.index') }}" class="btn btn-outline-light w-100">👤 Profile</a>
+            </div>
+            <div class="col-6 col-md">
+                <a href="{{ url_for('channels.index') }}" class="btn btn-outline-light w-100">📡 Channels</a>
+            </div>
+            <div class="col-6 col-md">
+                <a href="{{ url_for('awareness.index') }}" class="btn btn-outline-light w-100">🛡️ Safety</a>
+            </div>
+            <div class="col-6 col-md">
+                <a href="{{ url_for('settings.index') }}" class="btn btn-outline-light w-100">⚙️ Settings</a>
+            </div>
+            <div class="col-6 col-md">
+                <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger w-100">🚪 Logout</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

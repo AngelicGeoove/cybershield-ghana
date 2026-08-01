@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Settings - CyberShield Ghana{% endblock %}
+{% block content %}
+<div class="mb-4">
+    <h2>Settings</h2>
+</div>
+<div class="card p-4 mb-4">
+    <h5>Reporting Channels</h5>
+    <p class="text-muted small">Configure the official CSA contact information used by this application.</p>
+    <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        {% set field_map = {
+            'CSA Online Form': 'csa_form_url',
+            'CSA Email': 'csa_email',
+            'CSA WhatsApp': 'csa_whatsapp'
+        } %}
+        {% for channel in channels %}
+        {% if channel.channel_name in field_map %}
+        <div class="mb-3">
+            <label class="form-label">{{ channel.channel_name }}</label>
+            <input type="text" class="form-control" name="{{ field_map[channel.channel_name] }}" value="{{ channel.destination }}">
+        </div>
+        {% endif %}
+        {% endfor %}
+        <button type="submit" class="btn btn-primary">Save Settings</button>
+    </form>
+</div>
+<div class="card p-4" style="background-color: var(--bg-elevated);">
+    <h5>About This Application</h5>
+    <p class="text-muted small mb-0">This is an independent application designed to facilitate reporting to the Cyber Security Authority (CSA) of Ghana. It is not an official CSA application unless formal authorization exists. All data is stored securely and users retain full control over their information.</p>
+</div>
+{% endblock %}

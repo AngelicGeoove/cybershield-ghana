@@ -1,0 +1,66 @@
+{% extends "report/wizard.html" %}
+{% block report_content %}
+<div class="mb-4">
+    <h2>Step 3: Describe What Happened</h2>
+    <p class="text-muted">Provide a clear description of the incident. Include what happened, when, where, and what actions the suspected attacker took.</p>
+</div>
+<form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <div class="mb-3 form-check">
+        <input type="checkbox" class="form-check-input" id="use_guided" name="use_guided"{{ " checked" if data.get("use_guided") }}>
+        <label class="form-check-label" for="use_guided">Need help writing your report? Use our guided questionnaire.</label>
+    </div>
+    <div id="guided-questionnaire" class="card p-3 mb-3" style="background-color: var(--bg-elevated); border-color: var(--border-strong); {{ 'display: block;' if data.get('use_guided') else 'display: none;' }}">
+        <h6>Guided Questionnaire</h6>
+        <p class="text-muted small">Answer these questions and they will be combined into a clear description for your report.</p>
+        <div class="mb-3">
+            <label class="form-label">What happened?</label>
+            <textarea class="form-control" name="guided_what" rows="2">{{ request.form.get("guided_what", data.get("guided_what", "")) }}</textarea>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">When did it happen?</label>
+            <input type="text" class="form-control" name="guided_when" value="{{ request.form.get("guided_when", data.get("guided_when", "")) }}">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Who contacted you?</label>
+            <input type="text" class="form-control" name="guided_who" value="{{ request.form.get("guided_who", data.get("guided_who", "")) }}">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Which platform was involved?</label>
+            <input type="text" class="form-control" name="guided_platform" value="{{ request.form.get("guided_platform", data.get("guided_platform", "")) }}">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">What did they ask you to do?</label>
+            <textarea class="form-control" name="guided_asked_to_do" rows="2">{{ request.form.get("guided_asked_to_do", data.get("guided_asked_to_do", "")) }}</textarea>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">What happened after you followed their instructions?</label>
+            <textarea class="form-control" name="guided_happened_after" rows="2">{{ request.form.get("guided_happened_after", data.get("guided_happened_after", "")) }}</textarea>
+        </div>
+    </div>
+    <div id="manual-description" class="mb-3" {{ 'style="display: none;"' if data.get('use_guided') }}>
+        <label for="description" class="form-label">Describe What Happened</label>
+        <textarea class="form-control" id="description" name="description" rows="8" required>{{ data.get("description", "") }}</textarea>
+        <div class="form-text">Be as detailed as possible. Include dates, platforms, usernames, URLs, phone numbers, what you did, what happened, and any evidence available.</div>
+    </div>
+    <button type="submit" class="btn btn-primary">Next: Additional Info</button>
+</form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const guidedCheckbox = document.getElementById('use_guided');
+    const guidedCard = document.getElementById('guided-questionnaire');
+    const manualDescription = document.getElementById('manual-description');
+    
+    guidedCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            guidedCard.style.display = 'block';
+            manualDescription.style.display = 'none';
+        } else {
+            guidedCard.style.display = 'none';
+            manualDescription.style.display = 'block';
+        }
+    });
+});
+</script>
+{% endblock %}

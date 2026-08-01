@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}{{ topic.title }} - CyberShield Ghana{% endblock %}
+{% block content %}
+<div class="mb-4">
+    <h2>{{ topic.title }}</h2>
+    <a href="{{ url_for('awareness.index') }}" class="btn btn-outline-primary btn-sm mb-3">&larr; Back to Topics</a>
+</div>
+<div class="card p-4 mb-3">
+    <h5>What is it?</h5>
+    <p>{{ topic.what }}</p>
+</div>
+<div class="card p-4 mb-3">
+    <h5>Warning Signs</h5>
+    <ul>
+        {% for sign in topic.warning_signs %}
+        <li>{{ sign }}</li>
+        {% endfor %}
+    </ul>
+</div>
+<div class="card p-4 mb-3">
+    <h5>What to do</h5>
+    <ul>
+        {% for action in topic.what_to_do %}
+        <li>{{ action }}</li>
+        {% endfor %}
+    </ul>
+</div>
+<div class="card p-4 mb-3">
+    <h5>What NOT to do</h5>
+    <ul>
+        {% for action in topic.what_not_to_do %}
+        <li>{{ action }}</li>
+        {% endfor %}
+    </ul>
+</div>
+<div class="card p-4 mb-3">
+    <h5>How to Report</h5>
+    <p>{{ topic.how_to_report }}</p>
+</div>
+<a href="{{ url_for('report.start_report') }}" class="btn btn-report">Report an Incident</a>
+{% endblock %}

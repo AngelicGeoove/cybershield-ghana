@@ -1,0 +1,50 @@
+{% extends "report/wizard.html" %}
+{% block report_content %}
+<div class="mb-4">
+    <h2>Step 5: Upload Supporting Evidence</h2>
+    <p class="text-muted">Attach screenshots, documents, or other evidence to support your report.</p>
+</div>
+<div class="alert alert-warning small">
+    <strong>Warning:</strong> Do not upload passwords, PINs, authentication codes, banking credentials, or other secrets. Do not upload unnecessary personal information belonging to other people.
+</div>
+<div class="card p-3 mb-3" style="background-color: var(--bg-light);">
+    <h6>Uploaded Files</h6>
+    {% if data.evidence_files %}
+    <div class="row g-2">
+        {% for fname, fmeta in data.evidence_files %}
+        <div class="col-md-6">
+            <div class="d-flex align-items-center gap-3 p-2" style="background-color: var(--bg-input); border-radius: 8px;">
+                {% if fmeta.get("type", "") in ['jpg', 'jpeg', 'png', 'gif'] %}
+                <img src="{{ url_for('report.evidence_preview', evidence_id=fmeta.get('id', 0)) }}"
+                     alt="{{ fmeta.get('name', fname) }}" style="width: 64px; height: 64px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-strong);">
+                {% else %}
+                <div class="d-flex align-items-center justify-content-center" style="width: 64px; height: 64px; background-color: var(--bg-elevated); border-radius: 6px; border: 1px solid var(--border-strong); font-size: 1.5rem;">📄</div>
+                {% endif %}
+                <div class="flex-grow-1" style="min-width: 0;">
+                    <div class="small text-truncate">{{ fmeta.get("name", fname) }}</div>
+                    <div class="text-muted small">{{ "%.1f" | format(fmeta.get("size", 0) / 1024) }} KB · {{ fmeta.get("type", "") }}</div>
+                    <form method="POST" action="{{ url_for('report.remove_evidence', evidence_id=fmeta.get('id', 0)) }}" class="d-inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <button type="submit" class="btn btn-sm btn-outline-danger mt-1 py-0">Remove</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-muted mb-0">No evidence files uploaded yet.</p>
+    {% endif %}
+</div>
+<form method="POST" action="{{ url_for('report.upload_evidence') }}" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <div class="mb-3">
+        <label for="files" class="form-label">Choose files to upload (max 10MB each)</label>
+        <input type="file" class="form-control" id="files" name="files" multiple accept=".png,.jpg,.jpeg,.gif,.pdf,.doc,.docx,.txt,.csv,.zip">
+        <div class="form-text">Allowed: PNG, JPG, JPEG, GIF, PDF, DOC, DOCX, TXT, CSV, ZIP. Max 10MB per file.</div>
+    </div>
+    <button type="submit" class="btn btn-primary">Upload Evidence</button>
+</form>
+<br>
+<a href="{{ url_for('report.report_step', step=6) }}" class="btn btn-primary">Next: Review & Channel Selection</a>
+{% endblock %}

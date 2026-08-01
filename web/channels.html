@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact the CSA - CyberShield Ghana</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <nav class="navbar" id="navbar"></nav>
+  <main>
+    <h2>Report to the Cyber Security Authority</h2>
+    <p class="text-muted">Official channels for submitting reports and getting help in Ghana.</p>
+    <div id="channels"></div>
+    <div class="card small">
+      <h5>Emergency situations</h5>
+      <p class="mb-0 text-muted">If you are in immediate danger or are being threatened, contact the
+      Ghana Police Service first: <strong>191</strong> (Police) or <strong>112</strong> (National Emergency).</p>
+    </div>
+  </main>
+  <div class="footer">CyberShield Ghana &middot; <a href="privacy.html">Privacy</a> &middot; <a href="terms.html">Terms</a></div>
+
+  <script type="module">
+    import { db, requireAuth, renderNav, esc } from "./js/common.js";
+    import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    requireAuth(() => {
+      renderNav("channels.html");
+      getDocs(collection(db, "reporting_channels")).then(snap => {
+        const items = [];
+        snap.forEach(d => items.push({ id: d.id, ...d.data() }));
+        const active = items.filter(c => c.active);
+        const el = document.getElementById("channels");
+        if (!active.length) {
+          el.innerHTML = `<div class="card"><p class="mb-0 text-muted">Channel information is being updated. Please check back soon.</p></div>`;
+          return;
+        }
+        el.innerHTML = active.map(c => `
+          <div class="card">
+            <h5>${esc(c.channel_name)}</h5>
+            <p class="mb-1">${esc(c.destination || "")}</p>
+            ${c.official_url ? `<a href="${esc(c.official_url)}" target="_blank" rel="noopener">${esc(c.official_url)}</a>` : ""}
+          </div>`).join("");
+      }).catch(() => {
+        document.getElementById("channels").innerHTML =
+          `<div class="card"><p class="mb-0 text-muted">Unable to load channels. Please try again later.</p></div>`;
+      });
+    });
+  </script>
+</body>
+</html>

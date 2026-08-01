@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Report Confirmation - CyberShield Ghana{% endblock %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8">
+        <div class="card p-4 text-center">
+            <div class="display-1 mb-3">&#x2705;</div>
+            <h2>Report Submitted</h2>
+            {% if incident_id %}
+            <p>Your cyber incident report has been prepared and submitted through the selected reporting channel.</p>
+            <div class="card p-3 mb-3" style="background-color: var(--bg-elevated);">
+                <table class="table table-dark table-sm mb-0">
+                    <tr>
+                        <td><strong>Report ID (Internal)</strong></td>
+                        <td>
+                            <code class="me-2">{{ incident_id }}</code>
+                            <button type="button" class="btn btn-outline-light btn-sm" onclick="copyReportId()">📋 Copy</button>
+                        </td>
+                    </tr>
+                    <tr><td><strong>Channel</strong></td><td>{{ data.get("channel", "N/A") }}</td></tr>
+                    <tr><td><strong>Category</strong></td><td>{{ category }}</td></tr>
+                    <tr><td><strong>Status</strong></td><td><span class="badge bg-success">Sent</span></td></tr>
+                </table>
+            </div>
+            <p class="text-muted small">Note: Report IDs are internal application references. The CSA will provide an official case/reference number if applicable.</p>
+            {% else %}
+            <p>Your cyber incident report has been prepared. Complete the submission through the official CSA channel.</p>
+            <p class="text-muted">Use the Report ID to track your submission.</p>
+            {% endif %}
+            <hr>
+            <a href="{{ url_for('cyberlog.index') }}" class="btn btn-primary me-2">View Cyber Log</a>
+            <a href="{{ url_for('report.start_report') }}" class="btn btn-outline-light">Report Another Incident</a>
+        </div>
+    </div>
+</div>
+<script>
+function copyReportId() {
+    const id = {{ incident_id|tojson if incident_id else 'null' }};
+    if (!id) return;
+    navigator.clipboard.writeText(id).then(function() {
+        const btn = event.target;
+        const original = btn.textContent;
+        btn.textContent = '✅ Copied';
+        setTimeout(function() { btn.textContent = original; }, 1500);
+    });
+}
+</script>
+{% endblock %}

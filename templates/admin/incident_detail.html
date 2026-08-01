@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}Report {{ incident.incident_id[:8] }} - Admin{% endblock %}
+{% block content %}
+<div class="mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <h2>Report Details</h2>
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-light">&larr; Back to Admin</a>
+    </div>
+    <p class="text-muted small">Report ID: <code class="me-1">{{ incident.incident_id }}</code> | Created: {{ incident.created_at.strftime('%B %d, %Y %H:%M') }}</p>
+</div>
+
+<div class="card p-4 mb-3">
+    <h5>Incident Information</h5>
+    <table class="table table-sm mb-0">
+        <tr><td style="width: 30%;"><strong>Reporter</strong></td><td>{{ incident.user.full_name }} ({{ incident.user.email }})</td></tr>
+        <tr><td><strong>Category</strong></td><td>{{ incident.category or 'N/A' }}</td></tr>
+        <tr><td><strong>Date</strong></td><td>{{ incident.incident_date or 'N/A' }}</td></tr>
+        <tr><td><strong>Time</strong></td><td>{{ incident.incident_time or 'N/A' }}</td></tr>
+        <tr><td><strong>Platform</strong></td><td>{{ incident.platform or 'N/A' }}</td></tr>
+        <tr><td><strong>Status</strong></td><td><span class="badge badge-{{ incident.status }}">{{ incident.status }}</span></td></tr>
+    </table>
+</div>
+
+<div class="card p-4 mb-3">
+    <h5>Description</h5>
+    <p class="mb-0">{{ incident.description or 'No description provided.' }}</p>
+</div>
+
+{% if submissions %}
+<div class="card p-4 mb-3">
+    <h5>Submission History</h5>
+    <table class="table table-sm mb-0">
+        <tr><th>Channel</th><th>Status</th><th>Attempted</th><th>Submitted</th><th>External Ref</th></tr>
+        {% for sub in submissions %}
+        <tr>
+            <td>{{ sub.channel }}</td>
+            <td><span class="badge badge-{{ sub.status }}">{{ sub.status }}</span></td>
+            <td>{{ sub.attempted_at.strftime('%b %d, %Y %H:%M') if sub.attempted_at else 'N/A' }}</td>
+            <td>{{ sub.submitted_at.strftime('%b %d, %Y %H:%M') if sub.submitted_at else 'N/A' }}</td>
+            <td>{{ sub.external_reference or 'N/A' }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endif %}
+
+<div class="card p-4 mb-3" id="evidence">
+    <h5>Evidence Files</h5>
+    {% if evidence %}
+    <div class="row g-2">
+        {% for ev in evidence %}
+        <div class="col-md-6">
+            <div class="d-flex align-items-center gap-3 p-2" style="background-color: var(--bg-input); border-radius: 8px;">
+                {% if ev.file_type in ['jpg', 'jpeg', 'png', 'gif'] %}
+                <a href="{{ url_for('admin.evidence_file', evidence_id=ev.id) }}" target="_blank" class="d-inline-block">
+                    <img src="{{ url_for('admin.evidence_file', evidence_id=ev.id) }}"
+                         alt="{{ ev.file_name }}" style="width: 64px; height: 64px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-strong);">
+                </a>
+                {% else %}
+                <div class="d-flex align-items-center justify-content-center" style="width: 64px; height: 64px; background-color: var(--bg-elevated); border-radius: 6px; border: 1px solid var(--border-strong); font-size: 1.5rem;">📄</div>
+                {% endif %}
+                <div class="flex-grow-1" style="min-width: 0;">
+                    <div class="small text-truncate">{{ ev.file_name }}</div>
+                    <div class="text-muted small">{{ "%.1f" | format(ev.file_size / 1024) }} KB · {{ ev.file_type }}</div>
+                    <a href="{{ url_for('admin.evidence_file', evidence_id=ev.id) }}" target="_blank" class="btn btn-sm btn-outline-primary mt-1 py-0">View</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-muted mb-0">No evidence attached.</p>
+    {% endif %}
+</div>
+
+<div class="card p-4 mb-3">
+    <h5>Assign Investigator</h5>
+    <form method="POST" action="{{ url_for('admin.assign_investigator', incident_id=incident.incident_id) }}" class="d-flex gap-2 align-items-center flex-wrap">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <select class="form-select" name="investigator_email" style="width: 260px;">
+            <option value="">— Unassigned —</option>
+            {% for inv in investigators %}
+            <option value="{{ inv.email }}"{{ " selected" if incident.assigned_investigator_email == inv.email }}>{{ inv.full_name }} ({{ inv.role_label }})</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary">Assign</button>
+    </form>
+</div>
+
+<div class="card p-4 mb-3">
+    <h5>Message Thread</h5>
+    {% if comments %}
+    <div class="mb-3">
+        {% for c in comments %}
+        <div class="border rounded p-2 mb-2" style="background-color: var(--bg-elevated);">
+            <div class="small">
+                <strong>{{ c.author.full_name }}</strong>
+                <span class="text-muted">({{ c.author.role_label }})</span>
+                <span class="text-muted float-end">{{ c.created_at.strftime('%b %d, %Y %H:%M') }}</span>
+            </div>
+            <div class="mt-1">{{ c.message }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-muted small">No messages yet. Messages appear here and are visible to the reporter on their Track Case page.</p>
+    {% endif %}
+    <form method="POST" action="{{ url_for('admin.add_comment', incident_id=incident.incident_id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <textarea class="form-control mb-2" name="message" rows="3" placeholder="Send a message to the reporter (e.g. request more evidence, explain next steps)..."></textarea>
+        <button type="submit" class="btn btn-primary">Send Message</button>
+    </form>
+</div>
+
+<div class="card p-4">
+    <h5>Manage Report</h5>
+    <div class="d-flex flex-wrap gap-3 align-items-center">
+        <form method="POST" action="{{ url_for('admin.update_status', incident_id=incident.incident_id) }}" class="d-flex gap-2 align-items-center">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <label class="form-label mb-0">Update Status</label>
+            <select class="form-select" name="status" style="width: 200px;">
+                {% for s in statuses %}
+                <option value="{{ s }}"{{ " selected" if incident.status == s }}>{{ s }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary">Update</button>
+        </form>
+        <form method="POST" action="{{ url_for('admin.delete_incident', incident_id=incident.incident_id) }}"
+              onsubmit="return confirm('Delete this report permanently? This cannot be undone.');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button type="submit" class="btn btn-danger">🗑️ Delete Report</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

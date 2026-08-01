@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Reports - CyberShield Ghana</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <nav class="navbar" id="navbar"></nav>
+  <main>
+    <h2>My Reports</h2>
+    <div id="flash" class="alert d-none"></div>
+
+    <div id="listView">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Reference</th><th>Category</th><th>Date</th><th>Status</th><th></th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="detailView" class="d-none"></div>
+  </main>
+  <div class="footer">CyberShield Ghana &middot; <a href="privacy.html">Privacy</a> &middot; <a href="terms.html">Terms</a></div>
+
+  <script type="module">
+    import { auth, db, requireAuth, renderNav, showFlash, fmtDate, statusBadge, esc } from "./js/common.js";
+    import { collection, query, where, orderBy, onSnapshot, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    requireAuth((user) => {
+      renderNav("reports.html");
+      const params = new URLSearchParams(location.search);
+      if (params.get("submitted")) showFlash("Report submitted successfully. Reference: " + params.get("id"), "success");
+
+      const q = query(collection(db, "incidents"), where("user_email", "==", user.email.toLowerCase()), orderBy("created_at", "desc"));
+      onSnapshot(q, (snap) => {
+        const incidents = [];
+        snap.forEach(d => incidents.push({ id: d.id, ...d.data() }));
+        renderList(incidents);
+        if (params.get("id")) openDetail(params.get("id"));
+      });
+    });
+
+    function renderList(incidents) {
+      const tbody = document.getElementById("rows");
+      if (incidents.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-muted">No reports yet. <a href="report.html">Report an incident</a>.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = incidents.map(i => `
+        <tr>
+          <td><a href="reports.html?id=${encodeURIComponent(i.id)}">${esc(i.id.slice(0, 8))}</a></td>
+          <td>${esc(i.category)}</td>
+          <td>${fmtDate(i.created_at)}</td>
+          <td>${statusBadge(i.status)}</td>
+          <td><a class="btn btn-sm btn-outline" href="reports.html?id=${encodeURIComponent(i.id)}">Track</a></td>
+        </tr>`).join("");
+    }
+
+    async function openDetail(id) {
+      document.getElementById("listView").classList.add("d-none");
+      const dv = document.getElementById("detailView");
+      dv.classList.remove("d-none");
+
+      const snap = await getDoc(doc(db, "incidents", id));
+      if (!snap.exists()) { dv.innerHTML = `<p class="text-muted">Report not found.</p><a class="btn btn-outline" href="reports.html">Back</a>`; return; }
+      const inc = { id, ...snap.data() };
+
+      // metadata
+      let metaRows = "";
+      try {
+        const raw = JSON.parse(inc.additional_information || "{}");
+        metaRows = Object.entries(raw).filter(([, v]) => v).map(([k, v]) =>
+          `<div><span class="text-muted">${esc(k.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()))}:</span> ${esc(v)}</div>`).join("");
+      } catch (e) { metaRows = `<div>${esc(inc.additional_information || "")}</div>`; }
+
+      // comments
+      const comments = await getDocs(collection(db, "incidents", id, "comments"));
+      let thread = '<p class="small text-muted">No messages yet.</p>';
+      if (!comments.empty) {
+        const items = [];
+        comments.forEach(c => items.push(c.data()));
+        items.sort((a, b) => (a.created_at || 0) - (b.created_at || 0));
+        thread = items.map(c => `
+          <div class="thread-item">
+            <strong>${esc(c.author_role === "investigator" ? "Investigator" : "Investigator")}</strong>
+            <span class="small text-muted">${fmtDate(c.created_at)}</span>
+            <p class="mb-0">${esc(c.message)}</p>
+          </div>`).join("");
+      }
+
+      dv.innerHTML = `
+        <a class="btn btn-sm btn-outline mb-3" href="reports.html">&larr; All reports</a>
+        <div class="card">
+          <h4>${esc(inc.category)} ${statusBadge(inc.status)}</h4>
+          <div class="small text-muted">Reference: ${esc(inc.id)} &middot; Submitted ${fmtDate(inc.created_at)}</div>
+          <p class="mt-3">${esc(inc.description || "")}</p>
+          ${metaRows ? `<hr style="border-color:var(--border-light)"><div class="small">${metaRows}</div>` : ""}
+        </div>
+        <div class="card">
+          <h5>Investigator Updates</h5>
+          ${thread}
+        </div>
+        <div class="card small">
+          <span class="text-muted">Need to attach evidence or files?</span> Send them to
+          <strong>report@csa.gov.gh</strong> or via official CSA channels quoting your reference.
+        </div>`;
+    }
+  </script>
+</body>
+</html>

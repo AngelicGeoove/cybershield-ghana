@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notifications - CyberShield Ghana</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <nav class="navbar" id="navbar"></nav>
+  <main>
+    <h2>Notifications</h2>
+    <div id="flash" class="alert d-none"></div>
+    <div id="list"></div>
+  </main>
+  <div class="footer">CyberShield Ghana &middot; <a href="privacy.html">Privacy</a> &middot; <a href="terms.html">Terms</a></div>
+
+  <script type="module">
+    import { auth, db, requireAuth, renderNav, fmtDate, esc } from "./js/common.js";
+    import { collection, query, where, onSnapshot, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    requireAuth((user) => {
+      renderNav("notifications.html");
+      const q = query(collection(db, "notifications"), where("user_email", "==", user.email.toLowerCase()));
+      onSnapshot(q, (snap) => {
+        const items = [];
+        snap.forEach(d => items.push({ id: d.id, ...d.data() }));
+        items.sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
+        const el = document.getElementById("list");
+        if (!items.length) {
+          el.innerHTML = `<div class="card"><p class="text-muted mb-0">You have no notifications yet.</p></div>`;
+          return;
+        }
+        el.innerHTML = items.map(n => `
+          <div class="card ${n.read_status ? "" : "mb-3"}" style="${n.read_status ? "opacity:.65" : ""}">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem">
+              <strong>${esc(n.title)}</strong>
+              <span class="small text-muted">${fmtDate(n.created_at)}</span>
+            </div>
+            <p class="mb-2">${esc(n.message)}</p>
+            ${n.read_status ? "" : `<button class="btn btn-sm btn-outline" data-id="${n.id}">Mark as read</button>`}
+          </div>`).join("");
+        el.querySelectorAll("[data-id]").forEach(btn => btn.addEventListener("click", async () => {
+          await updateDoc(doc(db, "notifications", btn.dataset.id), { read_status: true });
+        }));
+      });
+    });
+  </script>
+</body>
+</html>

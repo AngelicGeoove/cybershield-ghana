@@ -1,0 +1,82 @@
+{% extends "report/wizard.html" %}
+{% block report_content %}
+<div class="mb-4">
+    <h2>Step 6: Choose Reporting Channel</h2>
+    <p class="text-muted">Select how you would like to submit your report to the Cyber Security Authority (CSA).</p>
+</div>
+<form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 {{ 'border-primary' if data.channel == 'csa-online-form' }} choose-channel" style="cursor: pointer;" data-channel="csa-online-form">
+                <div class="card-body text-center p-4">
+                    <div class="display-6 mb-2">&#x1F310;</div>
+                    <h5>CSA Online Form</h5>
+                    <p class="text-muted small">Submit through the official CSA Incident Reporting Form.</p>
+                </div>
+                <div class="card-footer text-center p-2">
+                    <input class="form-check-input" type="radio" name="channel" value="csa-online-form" id="ch_form" {{ "checked" if data.channel == "csa-online-form" }}>
+                    <label class="form-check-label" for="ch_form">Select</label>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 {{ 'border-primary' if data.channel == 'email' }} choose-channel" style="cursor: pointer;" data-channel="email">
+                <div class="card-body text-center p-4">
+                    <div class="display-6 mb-2">&#x2709;&#xFE0F;</div>
+                    <h5>Email</h5>
+                    <p class="text-muted small">Prepare an email for the official CSA reporting address.</p>
+                </div>
+                <div class="card-footer text-center p-2">
+                    <input class="form-check-input" type="radio" name="channel" value="email" id="ch_email" {{ "checked" if data.channel == "email" }}>
+                    <label class="form-check-label" for="ch_email">Select</label>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 {{ 'border-primary' if data.channel == 'whatsapp' }} choose-channel" style="cursor: pointer;" data-channel="whatsapp">
+                <div class="card-body text-center p-4">
+                    <div class="display-6 mb-2">&#x1F4AC;</div>
+                    <h5>WhatsApp</h5>
+                    <p class="text-muted small">Prepare a message for the official CSA WhatsApp channel.</p>
+                </div>
+                <div class="card-footer text-center p-2">
+                    <input class="form-check-input" type="radio" name="channel" value="whatsapp" id="ch_wa" {{ "checked" if data.channel == "whatsapp" }}>
+                    <label class="form-check-label" for="ch_wa">Select</label>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="alert alert-info small">
+        <strong>The official CSA reporting contact:</strong> report@csa.gov.gh | WhatsApp: 050 160 3111<br>
+        These contact details are configurable and last verified by the administrator.
+    </div>
+    <div class="d-flex gap-3">
+        <button type="submit" class="btn btn-report flex-fill">Next: Review Report</button>
+    </div>
+</form>
+{% endblock %}
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.choose-channel').forEach(function(card) {
+        card.addEventListener('click', function(e) {
+            // Don't trigger if clicking on the radio/label directly (they handle themselves)
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'LABEL') {
+                return;
+            }
+            var channelValue = this.getAttribute('data-channel');
+            var radio = document.querySelector('input[name="channel"][value="' + channelValue + '"]');
+            if (radio) {
+                radio.checked = true;
+                // Update visual selection
+                document.querySelectorAll('.choose-channel').forEach(function(c) {
+                    c.classList.remove('border-primary');
+                });
+                this.classList.add('border-primary');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

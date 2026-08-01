@@ -1,0 +1,142 @@
+rules_version = '2';
+
+// =============================================================================
+// CyberShield Ghana - Firestore Security Rules
+// =============================================================================
+// Design principles:
+//   * The desktop app uses the Firebase Admin SDK and BYPASSES these rules
+//     entirely (that is where admin/investigator actions happen).
+//   * These rules govern the BROWSER (GitHub Pages) version - reporters only.
+//   * Reporters can touch ONLY their own data. Admin operations (role changes,
+//     status changes, comments, deletions, audit logs) are structurally denied
+//     client-side - there is no way to reach them from a browser even with a
+//     stolen API key, because rules are enforced server-side.
+// =============================================================================
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ----------------------------------------------------------------------
+    // Helpers
+    // ----------------------------------------------------------------------
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function authEmail() {
+      return request.auth.token.email.lower();
+    }
+
+    function isAdmin() {
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/users/$(authEmail())).data.role == 'admin';
+    }
+
+    function isInvestigator() {
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/users/$(authEmail())).data.role in ['investigator', 'admin'];
+    }
+
+    // ----------------------------------------------------------------------
+    // users/{email} - profiles + roles (roles only changeable by desktop)
+    // ----------------------------------------------------------------------
+    match /users/{userId} {
+      allow read: if isSignedIn() && (authEmail() == userId || isAdmin());
+
+      // Self-registration from the web app (desktop uses the Admin SDK).
+      allow create: if isSignedIn()
+        && authEmail() == userId
+        && request.resource.data.role == 'user'
+        && request.resource.data.email == request.auth.token.email;
+
+      // Profile edits only; role/email/auth_uid can never change from a browser.
+      allow update: if isSignedIn()
+        && authEmail() == userId
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.email == resource.data.email;
+
+      allow delete: if false;
+    }
+
+    // ----------------------------------------------------------------------
+    // incidents/{incidentId} - reports
+    // ----------------------------------------------------------------------
+    match /incidents/{incidentId} {
+      function isReporter() {
+        return isSignedIn() && resource.data.user_email == authEmail();
+      }
+
+      function isIncidentReader() {
+        return isSignedIn() && (
+          get(/databases/$(database)/documents/incidents/$(incidentId)).data.user_email == authEmail()
+          || get(/databases/$(database)/documents/incidents/$(incidentId)).data.assigned_investigator_email == authEmail()
+        );
+      }
+
+      allow read: if isSignedIn() && (
+        resource.data.user_email == authEmail()
+        || resource.data.assigned_investigator_email == authEmail()
+      );
+
+      // A reporter may file a report. They can never set who it is assigned to.
+      allow create: if isSignedIn()
+        && request.resource.data.user_email == authEmail()
+        && request.resource.data.status in ['draft', 'prepared', 'submitted']
+        && !('assigned_investigator_email' in request.resource.data);
+
+      // Status changes and assignments happen ONLY in the desktop app
+      // (Admin SDK bypasses these rules by design).
+      allow update: if false;
+
+      // Reporters may remove their own unsent drafts.
+      allow delete: if isReporter() && resource.data.status == 'draft';
+
+      // ----- evidence (files stay local/desktop - metadata only) -----
+      match /evidence/{eid} {
+        allow read: if isIncidentReader();
+        allow write: if false;
+      }
+
+      // ----- submissions (channel attempts) -----
+      match /submissions/{sid} {
+        allow read: if isIncidentReader();
+        allow write: if false;
+      }
+
+      // ----- comments (investigator <-> reporter messages) -----
+      // Investigators post messages from the desktop app; web reporters only read.
+      match /comments/{cid} {
+        allow read: if isIncidentReader();
+        allow write: if false;
+      }
+    }
+
+    // ----------------------------------------------------------------------
+    // notifications/{nid}
+    // ----------------------------------------------------------------------
+    match /notifications/{nid} {
+      allow read: if isSignedIn() && resource.data.user_email == authEmail();
+
+      // Reporters can mark their own notifications read - nothing else.
+      allow update: if isSignedIn()
+        && resource.data.user_email == authEmail()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read_status']);
+
+      allow create, delete: if false;
+    }
+
+    // ----------------------------------------------------------------------
+    // audit_logs/{aid} - desktop (Admin SDK) only
+    // ----------------------------------------------------------------------
+    match /audit_logs/{aid} {
+      allow read, write: if false;
+    }
+
+    // ----------------------------------------------------------------------
+    // reporting_channels/{slug} - public contact config, written by desktop
+    // ----------------------------------------------------------------------
+    match /reporting_channels/{slug} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}

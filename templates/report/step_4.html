@@ -1,0 +1,69 @@
+{% extends "report/wizard.html" %}
+{% block report_content %}
+<div class="mb-4">
+    <h2>Step 4: Additional Information</h2>
+    <p class="text-muted">Provide additional details that may help investigators. All fields are optional.</p>
+</div>
+<form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="incident_date" class="form-label">Incident Date</label>
+            <input type="date" class="form-control" id="incident_date" name="incident_date" value="{{ data.metadata.get('incident_date', '') }}">
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="incident_time" class="form-label">Approximate Time</label>
+            <input type="time" class="form-control" id="incident_time" name="incident_time" value="{{ data.metadata.get('incident_time', '') }}">
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="platform" class="form-label">Platform / Service</label>
+            <input type="text" class="form-control" id="platform" name="platform" value="{{ data.metadata.get('platform', '') }}">
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="website_url" class="form-label">Website URL</label>
+            <input type="url" class="form-control" id="website_url" name="website_url" value="{{ data.metadata.get('website_url', '') }}">
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="social_media_username" class="form-label">Social Media Username</label>
+            <input type="text" class="form-control" id="social_media_username" name="social_media_username" value="{{ data.metadata.get('social_media_username', '') }}">
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="phone_involved" class="form-label">Phone Number Involved</label>
+            <input type="tel" class="form-control" id="phone_involved" name="phone_involved" value="{{ data.metadata.get('phone_involved', '') }}">
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="email_involved" class="form-label">Email Address Involved</label>
+            <input type="email" class="form-control" id="email_involved" name="email_involved" value="{{ data.metadata.get('email_involved', '') }}">
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="transaction_ref" class="form-label">Transaction Reference</label>
+            <input type="text" class="form-control" id="transaction_ref" name="transaction_ref" value="{{ data.metadata.get('transaction_ref', '') }}">
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="mobile_money_details" class="form-label">Mobile Money Details</label>
+            <input type="text" class="form-control" id="mobile_money_details" name="mobile_money_details" value="{{ data.metadata.get('mobile_money_details', '') }}">
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="bank_provider" class="form-label">Bank / Payment Provider</label>
+            <input type="text" class="form-control" id="bank_provider" name="bank_provider" value="{{ data.metadata.get('bank_provider', '') }}">
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="suspected_identifier" class="form-label">Suspected Scammer Identifier</label>
+            <input type="text" class="form-control" id="suspected_identifier" name="suspected_identifier" value="{{ data.metadata.get('suspected_identifier', '') }}">
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="metadata_location" class="form-label">Location</label>
+            <input type="text" class="form-control" id="metadata_location" name="metadata_location" value="{{ data.metadata.get('metadata_location', '') }}">
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="device" class="form-label">Device / Platform Involved</label>
+            <input type="text" class="form-control" id="device" name="device" value="{{ data.metadata.get('device', '') }}">
+        </div>
+    </div>
+    <div class="alert alert-info">
+        <strong>Required</strong> fields marked with *.<br>
+        <strong>Optional</strong> fields help investigators but are not mandatory.
+    </div>
+    <button type="submit" class="btn btn-primary">Next: Upload Evidence</button>
+</form>
+{% endblock %}

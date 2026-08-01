@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}Report Detail - CyberShield Ghana{% endblock %}
+{% block content %}
+<div class="mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <h2>Report Details</h2>
+        <div>
+            {% if incident.status == 'draft' %}
+            <a href="{{ url_for('report.report_step', step=1) }}" class="btn btn-warning">Edit Draft</a>
+            <form method="POST" action="{{ url_for('cyberlog.delete_incident', incident_id=incident.incident_id) }}" class="d-inline" onsubmit="return confirm('Delete this draft?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="submit" class="btn btn-danger">Delete</button>
+            </form>
+            {% endif %}
+            <a href="{{ url_for('cyberlog.export_report', incident_id=incident.incident_id) }}" class="btn btn-outline-primary">Export PDF</a>
+        </div>
+    </div>
+    <p class="text-muted small">
+        Internal Report ID: <code class="me-1">{{ incident.incident_id }}</code>
+        <button type="button" class="btn btn-outline-light btn-sm py-0" onclick="copyReportId(this)">📋 Copy</button>
+        | Created: {{ incident.created_at.strftime('%B %d, %Y %H:%M') }}
+    </p>
+</div>
+
+<script>
+function copyReportId(btn) {
+    const id = {{ incident.incident_id|tojson }};
+    navigator.clipboard.writeText(id).then(function() {
+        const original = btn.textContent;
+        btn.textContent = '✅ Copied';
+        setTimeout(function() { btn.textContent = original; }, 1500);
+    });
+}
+</script>
+
+<div class="card p-4 mb-3">
+    <h5>Incident Information</h5>
+    <table class="table table-sm mb-0">
+        <tr><td><strong>Category</strong></td><td>{{ incident.category }}</td></tr>
+        <tr><td><strong>Date</strong></td><td>{{ incident.incident_date or "N/A" }}</td></tr>
+        <tr><td><strong>Time</strong></td><td>{{ incident.incident_time or "N/A" }}</td></tr>
+        <tr><td><strong>Platform</strong></td><td>{{ incident.platform or "N/A" }}</td></tr>
+        <tr><td><strong>Status</strong></td><td><span class="badge badge-{{ incident.status }}">{{ incident.status }}</span></td></tr>
+        {% if incident.assigned_investigator %}
+        <tr><td><strong>Assigned Investigator</strong></td><td>{{ incident.assigned_investigator.full_name }}</td></tr>
+        {% endif %}
+    </table>
+</div>
+
+<div class="card p-4 mb-3">
+    <h5>Description</h5>
+    <p>{{ incident.description }}</p>
+</div>
+
+{% if metadata_rows %}
+<div class="card p-4 mb-3">
+    <h5>Additional Information</h5>
+    <table class="table table-sm mb-0">
+        {% for label, value in metadata_rows %}
+        <tr>
+            <td style="width: 35%;"><strong>{{ label }}</strong></td>
+            <td>{{ value }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endif %}
+
+{% if evidence %}
+<div class="card p-4 mb-3">
+    <h5>Evidence Files</h5>
+    <div class="row g-2">
+        {% for ev in evidence %}
+        <div class="col-md-6">
+            <div class="d-flex align-items-center gap-3 p-2" style="background-color: var(--bg-input); border-radius: 8px;">
+                {% if ev.file_type in ['jpg', 'jpeg', 'png', 'gif'] %}
+                <a href="{{ url_for('cyberlog.evidence_file', incident_id=incident.incident_id, evidence_id=ev.id) }}" target="_blank" class="d-inline-block">
+                    <img src="{{ url_for('cyberlog.evidence_file', incident_id=incident.incident_id, evidence_id=ev.id) }}"
+                         alt="{{ ev.file_name }}" style="width: 64px; height: 64px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-strong);">
+                </a>
+                {% else %}
+                <div class="d-flex align-items-center justify-content-center" style="width: 64px; height: 64px; background-color: var(--bg-elevated); border-radius: 6px; border: 1px solid var(--border-strong); font-size: 1.5rem;">📄</div>
+                {% endif %}
+                <div class="flex-grow-1" style="min-width: 0;">
+                    <div class="small text-truncate">{{ ev.file_name }}</div>
+                    <div class="text-muted small">{{ "%.1f" | format(ev.file_size / 1024) }} KB · {{ ev.file_type }}</div>
+                    <a href="{{ url_for('cyberlog.evidence_file', incident_id=incident.incident_id, evidence_id=ev.id) }}" target="_blank" class="btn btn-sm btn-outline-primary mt-1 py-0">View</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% if submissions %}
+<div class="card p-4 mb-3">
+    <h5>Submission History</h5>
+    <table class="table table-sm">
+        <tr><th>Channel</th><th>Status</th><th>Attempted</th><th>Submitted</th><th>External Ref</th></tr>
+        {% for sub in submissions %}
+        <tr>
+            <td>{{ sub.channel }}</td>
+            <td><span class="badge badge-{{ sub.status }}">{{ sub.status }}</span></td>
+            <td>{{ sub.attempted_at.strftime('%b %d, %Y %H:%M') if sub.attempted_at else 'N/A' }}</td>
+            <td>{{ sub.submitted_at.strftime('%b %d, %Y %H:%M') if sub.submitted_at else 'N/A' }}</td>
+            <td>{{ sub.external_reference or 'N/A' }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endif %}
+
+{% if comments %}
+<div class="card p-4 mb-3">
+    <h5>Investigator Updates</h5>
+    {% for c in comments %}
+    <div class="border rounded p-2 mb-2" style="background-color: var(--bg-elevated);">
+        <div class="small">
+            <strong>{{ c.author.full_name }}</strong>
+            <span class="text-muted">({{ c.author.role_label }})</span>
+            <span class="text-muted float-end">{{ c.created_at.strftime('%b %d, %Y %H:%M') }}</span>
+        </div>
+        <div class="mt-1">{{ c.message }}</div>
+    </div>
+    {% endfor %}
+    <p class="text-muted small mb-0">Messages from the investigation team. If you need to provide more information, reply via a new report or contact the CSA directly.</p>
+</div>
+{% endif %}
+
+<div class="mt-3">
+    <a href="{{ url_for('cyberlog.index') }}" class="btn btn-outline-secondary">Back to Cyber Log</a>
+</div>
+{% endblock %}

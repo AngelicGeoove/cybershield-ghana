@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Reporting Channels - CyberShield Ghana{% endblock %}
+{% block content %}
+<div class="mb-4">
+    <h2>Reporting Channels</h2>
+    <p class="text-muted">Official CSA contact channels for reporting cyber incidents. These are configurable by administrators.</p>
+</div>
+<div class="row">
+    {% for channel in channels %}
+    <div class="col-md-4 mb-3">
+        <div class="card p-4">
+            <h5>{{ channel.channel_name }}</h5>
+            <p class="text-muted">{{ channel.destination }}</p>
+            {% if channel.official_url %}
+            <a href="{{ channel.official_url }}" target="_blank" class="btn btn-primary btn-sm">Go to Official Page</a>
+            {% endif %}
+            <small class="text-muted">Last verified: {{ channel.last_verified.strftime('%b %d, %Y') if channel.last_verified else 'N/A' }}</small>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+<div class="card p-4 mt-4" style="background-color: var(--bg-elevated);">
+    <h5>Emergency</h5>
+    <p>If you are in immediate danger or experiencing ongoing financial loss, contact the CSA directly using the emergency channels above, or call local emergency services.</p>
+    <p class="text-muted small">This application is an independent tool and does not replace direct contact with official authorities.</p>
+</div>
+{% endblock %}

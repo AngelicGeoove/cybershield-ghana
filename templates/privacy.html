@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Privacy Policy - CyberShield Ghana{% endblock %}
+{% block content %}
+<div class="mb-4">
+    <h2>Privacy Policy</h2>
+    <p class="text-muted">Last updated: July 2026</p>
+</div>
+<div class="card p-4 mb-3">
+    <h5>Information We Collect</h5>
+    <p>We collect the following information when you create an account or submit a report:</p>
+    <ul>
+        <li>Full name</li>
+        <li>Email address</li>
+        <li>Phone number</li>
+        <li>Organisation (optional)</li>
+        <li>Location (optional)</li>
+        <li>Age (optional)</li>
+        <li>Incident details and description</li>
+        <li>Supporting evidence files</li>
+        <li>Submission metadata (channel, timestamps, status)</li>
+    </ul>
+</div>
+<div class="card p-4 mb-3">
+    <h5>Why We Collect This Information</h5>
+    <p>This information is collected to:</p>
+    <ul>
+        <li>Enable you to create and submit cyber incident reports</li>
+        <li>Pre-fill CSA reporting forms with your details</li>
+        <li>Maintain a personal record of your submissions</li>
+        <li>Provide follow-up functionality</li>
+        <li>Improve our service</li>
+    </ul>
+</div>
+<div class="card p-4 mb-3">
+    <h5>What Information Is Shared with the CSA</h5>
+    <p>When you submit a report, the following information is shared with the Cyber Security Authority (CSA):</p>
+    <ul>
+        <li>Reporter information (name, organisation, email, phone, location, age)</li>
+        <li>Incident category</li>
+        <li>Incident description</li>
+        <li>Supporting evidence</li>
+        <li>Additional incident metadata</li>
+    </ul>
+    <p>Information that remains inside the application includes submission tracking data and internal reference numbers.</p>
+</div>
+<div class="card p-4 mb-3">
+    <h5>How We Store Your Data</h5>
+    <ul>
+        <li>Passwords are hashed using bcrypt and never stored in plaintext</li>
+        <li>Evidence files are stored securely</li>
+        <li>Data is encrypted in transit (HTTPS/TLS)</li>
+        <li>Access controls limit data access to authorized users only</li>
+    </ul>
+</div>
+<div class="card p-4 mb-3">
+    <h5>Data Retention</h5>
+    <p>We retain your data for as long as necessary to provide our services. You can delete your account and request deletion of your stored data at any time through your profile settings.</p>
+</div>
+<div class="card p-4 mb-3">
+    <h5>Your Rights</h5>
+    <ul>
+        <li><strong>Access:</strong> You can request a copy of your data</li>
+        <li><strong>Correction:</strong> You can update your profile information at any time</li>
+        <li><strong>Deletion:</strong> You can delete your account and associated data</li>
+        <li><strong>Export:</strong> You can export your data at any time</li>
+    </ul>
+</div>
+<div class="card p-4 mb-3">
+    <h5>Third-Party Services</h5>
+    <p>This application uses the following third-party services:</p>
+    <ul>
+        <li>Bootstrap CDN for UI styling</li>
+        <li>Email and WhatsApp for report submission (via user's installed apps)</li>
+    </ul>
+</div>
+<p>This privacy policy is designed to comply with applicable Ghanaian data protection requirements. If you have any questions about our privacy practices, please contact us through the support channels listed on our website.</p>
+{% endblock %}

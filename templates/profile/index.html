@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}My Profile - CyberShield Ghana{% endblock %}
+{% block content %}
+<div class="mb-4">
+    <h2>My Profile</h2>
+</div>
+<div class="row">
+    <div class="col-md-6">
+        <div class="card p-4">
+            <h5>Update Profile</h5>
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <div class="mb-3">
+                    <label for="full_name" class="form-label">Full Name</label>
+                    <input type="text" class="form-control" id="full_name" name="full_name" value="{{ user.full_name }}" required>
+                </div>
+                <div class="mb-3">
+                    <label for="phone" class="form-label">Phone Number</label>
+                    <input type="tel" class="form-control" id="phone" name="phone" value="{{ user.phone or '' }}">
+                </div>
+                <div class="mb-3">
+                    <label for="organisation" class="form-label">Organisation</label>
+                    <input type="text" class="form-control" id="organisation" name="organisation" value="{{ user.organisation or '' }}">
+                </div>
+                <div class="mb-3">
+                    <label for="location" class="form-label">Location</label>
+                    <input type="text" class="form-control" id="location" name="location" value="{{ user.location or '' }}">
+                </div>
+                <div class="mb-3">
+                    <label for="age" class="form-label">Age</label>
+                    <input type="number" class="form-control" id="age" name="age" value="{% if user.age %}{{ user.age }}{% endif %}" min="13" max="120">
+                </div>
+                <button type="submit" class="btn btn-primary">Update Profile</button>
+            </form>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card p-4 mb-3">
+            <h5>Account Information</h5>
+            <table class="table table-sm mb-0">
+                <tr><td><strong>Email</strong></td><td>{{ user.email }}</td></tr>
+                <tr><td><strong>Email Verified</strong></td><td>{{ "Yes" if user.email_verified else "No" }}</td></tr>
+                <tr><td><strong>Status</strong></td><td>{{ user.account_status }}</td></tr>
+                <tr><td><strong>Member Since</strong></td><td>{{ user.created_at.strftime('%B %d, %Y') }}</td></tr>
+            </table>
+        </div>
+        <div class="card p-4 mb-3">
+            <h5>Account Actions</h5>
+            <a href="{{ url_for('profile.export_data') }}" class="btn btn-outline-primary btn-sm me-2">Export My Data</a>
+            <form method="POST" action="{{ url_for('profile.delete_account') }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete your account? This action cannot be undone.');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="submit" class="btn btn-danger btn-sm">Delete Account</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

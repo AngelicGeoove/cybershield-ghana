@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Register - CyberShield Ghana{% endblock %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card p-4">
+            <h3 class="text-center mb-4">📝 Create Account</h3>
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <div class="mb-3">
+                    <label for="full_name" class="form-label">Full Name <span class="required-star">*</span></label>
+                    <input type="text" class="form-control" id="full_name" name="full_name" required>
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email Address <span class="required-star">*</span></label>
+                    <input type="email" class="form-control" id="email" name="email" required>
+                </div>
+                <div class="mb-3">
+                    <label for="phone" class="form-label">Phone Number</label>
+                    <input type="tel" class="form-control" id="phone" name="phone">
+                </div>
+                <div class="mb-3">
+                    <label for="organisation" class="form-label">Organisation (Optional)</label>
+                    <input type="text" class="form-control" id="organisation" name="organisation">
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="age" class="form-label">Age</label>
+                        <input type="number" class="form-control" id="age" name="age" min="13" max="120">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="location" class="form-label">Location</label>
+                        <input type="text" class="form-control" id="location" name="location">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password <span class="required-star">*</span> <small class="form-text">(min. 8 characters)</small></label>
+                    <input type="password" class="form-control" id="password" name="password" required minlength="8">
+                </div>
+                <div class="mb-3">
+                    <label for="confirm_password" class="form-label">Confirm Password <span class="required-star">*</span></label>
+                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 py-2">Create Account</button>
+            </form>
+            <hr>
+            <p class="text-center mb-0">Already have an account? <a href="{{ url_for('auth.login') }}">Login here</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

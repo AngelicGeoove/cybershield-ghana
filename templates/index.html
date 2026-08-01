@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}CyberShield Ghana - Cyber Incident Reporting{% endblock %}
+{% block content %}
+<div class="hero">
+    <div class="container">
+        <h1>🛡️ Cyber<span>Shield</span> Ghana</h1>
+        <p class="lead">Report Cybercrime. Keep Track. Stay Informed.</p>
+        <p class="text-muted">Mobile-Based Cybercrime and Cybersecurity Incident Reporting, Assistance and Tracking Application</p>
+        <hr class="w-50 mx-auto border-secondary">
+        <p class="text-muted small">An independent application designed to facilitate reporting to the Cyber Security Authority (CSA)</p>
+        <div class="mt-4">
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('dashboard.index') }}" class="btn btn-report btn-lg me-2">Go to Dashboard</a>
+            {% else %}
+            <a href="{{ url_for('auth.register') }}" class="btn btn-report btn-lg me-2">Get Started</a>
+            <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light btn-lg">Login</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<div class="container mt-5">
+    <div class="row text-center">
+        <div class="col-md-4 mb-4">
+            <div class="card p-4 h-100">
+                <div class="display-6 mb-3">🔒</div>
+                <h5>Secure Reporting</h5>
+                <p class="text-muted small">File cybercrime reports securely with end-to-end encryption and strong authentication.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card p-4 h-100">
+                <div class="display-6 mb-3">📋</div>
+                <h5>Track Your Reports</h5>
+                <p class="text-muted small">Maintain a personal Cyber Log of all your incident reports and track their status.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card p-4 h-100">
+                <div class="display-6 mb-3">📱</div>
+                <h5>Multiple Channels</h5>
+                <p class="text-muted small">Submit reports via CSA Online Form, Email, or WhatsApp — all from one app.</p>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container mt-4 mb-5">
+    <div class="card p-4">
+        <h4>⚠️ Important Notice</h4>
+        <p>This is an independent application and is <strong>not</strong> an official CSA application. It is designed to facilitate reporting to the Cyber Security Authority of Ghana. Only submit reports through official CSA channels. If you are in immediate danger, please contact emergency services or the CSA directly.</p>
+    </div>
+</div>
+{% endblock %}

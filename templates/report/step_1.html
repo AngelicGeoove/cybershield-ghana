@@ -1,0 +1,40 @@
+{% extends "report/wizard.html" %}
+{% block report_content %}
+<div class="mb-4">
+    <h2>Step 1: Reporter Information</h2>
+    <p class="text-muted">These details are pre-filled from your account and will be shared with the CSA.</p>
+</div>
+<form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="full_name" class="form-label">Full Name <span class="required-star">*</span></label>
+            <input type="text" class="form-control" id="full_name" name="full_name" value="{{ data.reporter.get('full_name', '') }}" required>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="organisation" class="form-label">Organisation</label>
+            <input type="text" class="form-control" id="organisation" name="organisation" value="{{ data.reporter.get('organisation', '') }}">
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="email" class="form-label">Email <span class="required-star">*</span></label>
+            <input type="email" class="form-control" id="email" name="email" value="{{ data.reporter.get('email', '') }}" required>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="phone" class="form-label">Phone Number</label>
+            <input type="tel" class="form-control" id="phone" name="phone" value="{{ data.reporter.get('phone', '') }}">
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="location" class="form-label">Location</label>
+            <input type="text" class="form-control" id="location" name="location" value="{{ data.reporter.get('location', '') }}">
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="age" class="form-label">Age</label>
+            <input type="number" class="form-control" id="age" name="age" value="{{ data.reporter.get('age', '') }}" min="13" max="120">
+        </div>
+    </div>
+    <div class="alert alert-info">
+        <strong>Please verify that the information below is accurate. These details will be included with your incident report.</strong>
+    </div>
+    <button type="submit" class="btn btn-primary">Next: Incident Category</button>
+</form>
+{% endblock %}

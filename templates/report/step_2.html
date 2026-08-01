@@ -1,0 +1,20 @@
+{% extends "report/wizard.html" %}
+{% block report_content %}
+<div class="mb-4">
+    <h2>Step 2: Incident Category</h2>
+    <p class="text-muted">Select the category that best describes the incident. The list is based on CSA reporting categories.</p>
+</div>
+<form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <div class="mb-3">
+        <label for="category" class="form-label">Incident Category</label>
+        <select class="form-select" id="category" name="category" required>
+            <option value="">-- Select a category --</option>
+            {% for cat in categories %}
+            <option value="{{ cat }}"{{ " selected" if data.category == cat }}>{{ cat }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Next: Describe Incident</button>
+</form>
+{% endblock %}

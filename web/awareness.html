@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stay Safe - CyberShield Ghana</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <nav class="navbar" id="navbar"></nav>
+  <main>
+    <h2>Stay Safe Online</h2>
+    <p class="text-muted">Practical tips from the Cyber Security Authority of Ghana to keep you protected.</p>
+    <div id="tips"></div>
+  </main>
+  <div class="footer">CyberShield Ghana &middot; <a href="privacy.html">Privacy</a> &middot; <a href="terms.html">Terms</a></div>
+
+  <script type="module">
+    import { requireAuth, renderNav, esc } from "./js/common.js";
+    requireAuth(() => renderNav("awareness.html"));
+
+    const TIPS = [
+      ["Use strong, unique passwords", "Use at least 12 characters with a mix of letters, numbers and symbols. Never reuse the same password across sites."],
+      ["Turn on two-factor authentication", "Enable 2FA on email, banking and mobile money apps. It blocks most account-takeover attempts."],
+      ["Beware of unsolicited links", "Never click links in unexpected SMS or WhatsApp messages, even if they look like they come from your bank or network."],
+      ["Never share your PIN or OTP", "No legitimate organisation - including the CSA, banks, or telecoms - will ever ask for your PIN or one-time password."],
+      ["Verify before you pay", "For online shopping, use trusted platforms and verify seller reviews before making payments."],
+      ["Update your devices", "Keep phones and computers updated. Updates patch security holes that criminals exploit."],
+      ["Watch for urgency and fear tactics", "Scammers create panic ('your account will be blocked!') to rush you. Stop, verify, and never act under pressure."],
+      ["Protect your social media", "Use private accounts, approve friend requests carefully, and avoid sharing your location or daily routines publicly."],
+      ["Beware of fake investment offers", "If a 'business opportunity' promises unrealistically high returns, it is almost certainly a scam."],
+      ["Secure your Wi-Fi", "Use WPA2/WPA3 encryption and a strong router password. Do not use public Wi-Fi for banking."],
+      ["Sextortion awareness", "Never share intimate images. If someone threatens to leak them, do not pay - report it to the CSA immediately."],
+      ["Report promptly", "The sooner you report, the better the chance of recovering money or stopping further harm."]
+    ];
+
+    document.getElementById("tips").innerHTML = TIPS.map(([t, d]) => `
+      <div class="card">
+        <h5>${esc(t)}</h5>
+        <p class="mb-0 text-muted">${esc(d)}</p>
+      </div>`).join("");
+  </script>
+</body>
+</html>

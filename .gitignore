@@ -1,0 +1,35 @@
+# Firebase service account key - NEVER commit this
+firebase-adminsdk.json
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# App runtime data
+instance/
+uploads/
+cybershield.db
+*.db
+*.sqlite3
+.secret_key
+flask.log
+
+# Development test / debug scripts (kept local, not part of the project)
+test_*.py
+*_test.py
+check_*.py
+cyberlog_output.html
+report_page.html
+
+# PyInstaller / NSIS build output
+build/
+dist/
+*.spec.bak
+CyberShieldGhana_Setup_v*.exe
+CyberShieldGhana.exe
+
+# OS / editor
+.DS_Store
+Thumbs.db

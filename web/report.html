@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Report an Incident - CyberShield Ghana</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <nav class="navbar" id="navbar"></nav>
+  <main>
+    <h2>Report an Incident</h2>
+    <div id="flash" class="alert d-none"></div>
+
+    <div class="steps" id="steps"></div>
+
+    <div class="card">
+      <!-- STEP 1: Category -->
+      <div class="step-panel" id="step1">
+        <h4>What type of cybercrime happened?</h4>
+        <select id="f_category"></select>
+        <div class="mt-4" style="display:flex;justify-content:space-between">
+          <span></span>
+          <button class="btn btn-primary" onclick="go(2)">Continue</button>
+        </div>
+      </div>
+
+      <!-- STEP 2: Description -->
+      <div class="step-panel d-none" id="step2">
+        <h4>Describe what happened</h4>
+        <p class="small text-muted">Be as specific as possible. Use the prompts on the right if you are unsure.</p>
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:1rem" class="desc-grid">
+          <div>
+            <textarea id="f_description" placeholder="e.g. I received a text claiming my mobile money account was locked and asking me to dial *713# and enter my PIN..."></textarea>
+            <button class="btn btn-sm btn-outline mt-3" onclick="useGuided()">Use guided helper</button>
+          </div>
+          <div class="card small" style="background:var(--bg-elevated)">
+            <strong>Guided prompts</strong>
+            <div id="guidedFields"></div>
+          </div>
+        </div>
+        <div class="mt-4" style="display:flex;justify-content:space-between">
+          <button class="btn btn-outline" onclick="go(1)">Back</button>
+          <button class="btn btn-primary" onclick="go(3)">Continue</button>
+        </div>
+      </div>
+
+      <!-- STEP 3: Incident details -->
+      <div class="step-panel d-none" id="step3">
+        <h4>Incident details</h4>
+        <div class="form-row">
+          <div class="form-group"><label>Date of incident</label><input type="date" id="f_date"></div>
+          <div class="form-group"><label>Approximate time</label><input type="time" id="f_time"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Platform / service</label><input id="f_platform" placeholder="e.g. MTN MoMo, Facebook, Gmail"></div>
+          <div class="form-group"><label>Website / app URL</label><input id="f_url" placeholder="e.g. https://..."></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Account / username involved</label><input id="f_username"></div>
+          <div class="form-group"><label>Phone number involved</label><input id="f_phone"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Email address involved</label><input id="f_email"></div>
+          <div class="form-group"><label>Transaction reference (if any)</label><input id="f_txn"></div>
+        </div>
+        <div class="form-group"><label>Location (where you were)</label><input id="f_location"></div>
+        <div class="mt-4" style="display:flex;justify-content:space-between">
+          <button class="btn btn-outline" onclick="go(2)">Back</button>
+          <button class="btn btn-primary" onclick="go(4)">Continue</button>
+        </div>
+      </div>
+
+      <!-- STEP 4: Reporter details -->
+      <div class="step-panel d-none" id="step4">
+        <h4>Your details</h4>
+        <div class="form-row">
+          <div class="form-group"><label>Full name</label><input id="f_name"></div>
+          <div class="form-group"><label>Phone</label><input id="f_phone2"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Location</label><input id="f_loc2"></div>
+          <div class="form-group"><label>Organisation (optional)</label><input id="f_org2"></div>
+        </div>
+        <p class="small text-muted">We will not publish your details. Investigators may contact you about your report.</p>
+        <div class="mt-4" style="display:flex;justify-content:space-between">
+          <button class="btn btn-outline" onclick="go(3)">Back</button>
+          <button class="btn btn-primary" onclick="go(5)">Continue</button>
+        </div>
+      </div>
+
+      <!-- STEP 5: Evidence note -->
+      <div class="step-panel d-none" id="step5">
+        <h4>Evidence</h4>
+        <div class="alert alert-info">
+          <strong>Secure file upload is available in the desktop application only.</strong><br>
+          If you have screenshots, transaction receipts or other files, please send them to
+          <strong>report@csa.gov.gh</strong> or via the official CSA channels after submitting,
+          quoting your report reference. An investigator may also request evidence and will tell
+          you how to provide it securely.
+        </div>
+        <div class="mt-4" style="display:flex;justify-content:space-between">
+          <button class="btn btn-outline" onclick="go(4)">Back</button>
+          <button class="btn btn-primary" onclick="go(6)">Continue</button>
+        </div>
+      </div>
+
+      <!-- STEP 6: Review + channel + submit -->
+      <div class="step-panel d-none" id="step6">
+        <h4>Review and submit</h4>
+        <div id="reviewBox" class="card small" style="background:var(--bg-elevated)"></div>
+        <div class="form-group mt-3">
+          <label>How would you like to submit this report?</label>
+          <select id="f_channel">
+            <option value="CSA Online Form">CSA Online Form</option>
+            <option value="CSA Email">CSA Email (report@csa.gov.gh)</option>
+            <option value="CSA WhatsApp">CSA WhatsApp</option>
+          </select>
+        </div>
+        <div class="mt-4" style="display:flex;justify-content:space-between">
+          <button class="btn btn-outline" onclick="go(5)">Back</button>
+          <button class="btn btn-primary" id="submitBtn" onclick="submitReport()">Submit Report</button>
+        </div>
+      </div>
+    </div>
+  </main>
+  <div class="footer">CyberShield Ghana &middot; <a href="privacy.html">Privacy</a> &middot; <a href="terms.html">Terms</a></div>
+
+  <script type="module">
+    import { auth, db, requireAuth, renderNav, showFlash, esc } from "./js/common.js";
+    import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    requireAuth((user) => {
+      renderNav("report.html");
+      init(user);
+    });
+
+    const CATEGORIES = [
+      "Online Fraud", "Phishing", "Unauthorised Access / Account Compromise", "Cyberbullying",
+      "Online Blackmail", "Identity Theft / Impersonation", "Malware", "Ransomware",
+      "Social Media Abuse", "Mobile Money Fraud", "Online Shopping Fraud", "Investment Scam",
+      "Sextortion / Non-consensual intimate-image abuse", "Website Defacement", "Data Breach",
+      "Suspected Cybersecurity Vulnerability", "Other"
+    ];
+    const GUIDED = [
+      ["guidedWhat", "What happened?"],
+      ["guidedWhen", "When did it happen?"],
+      ["guidedWho", "Who is involved (account/phone/name)?"],
+      ["guidedPlatform", "Which platform/service?"],
+      ["guidedAsked", "What were you asked to do?"],
+      ["guidedAfter", "What happened afterwards?"]
+    ];
+
+    let state = { category: "", description: "", metadata: {}, reporter: {}, channel: "CSA Online Form" };
+    let currentUser = null;
+
+    async function init(user) {
+      currentUser = user;
+      document.getElementById("f_category").innerHTML = CATEGORIES.map(c => `<option>${c}</option>`).join("");
+      document.getElementById("guidedFields").innerHTML = GUIDED.map(([id, label]) =>
+        `<label style="font-size:.8rem;margin-top:.4rem">${label}</label><textarea id="${id}" style="min-height:44px"></textarea>`).join("");
+
+      // Prefill reporter details from profile
+      try {
+        const snap = await getDoc(doc(db, "users", user.email.toLowerCase()));
+        if (snap.exists()) {
+          const d = snap.data();
+          document.getElementById("f_name").value = d.full_name || "";
+          document.getElementById("f_phone2").value = d.phone || "";
+          document.getElementById("f_loc2").value = d.location || "";
+          document.getElementById("f_org2").value = d.organisation || "";
+        }
+      } catch (e) { /* profile may not exist yet */ }
+      renderSteps(1);
+    }
+
+    function renderSteps(n) {
+      const steps = ["Category", "Description", "Incident details", "Your details", "Evidence", "Review"];
+      const dots = steps.map((s, i) => {
+        const num = i + 1;
+        const cls = num === n ? "active" : num < n ? "done" : "";
+        return `<span class="step ${cls}"><span class="dot">${num}</span>${s}</span>` + (num < 6 ? '<span class="step-sep"></span>' : "");
+      }).join("");
+      document.getElementById("steps").innerHTML = dots;
+      for (let i = 1; i <= 6; i++) document.getElementById("step" + i).classList.toggle("d-none", i !== n);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    window.go = (n) => { capture(n); renderSteps(n); };
+
+    function capture(next) {
+      if (next >= 2) state.category = document.getElementById("f_category").value;
+      if (next >= 3) state.description = document.getElementById("f_description").value;
+      if (next >= 4) {
+        state.metadata = {
+          incident_date: document.getElementById("f_date").value,
+          incident_time: document.getElementById("f_time").value,
+          platform: document.getElementById("f_platform").value,
+          website_url: document.getElementById("f_url").value,
+          social_media_username: document.getElementById("f_username").value,
+          phone_involved: document.getElementById("f_phone").value,
+          email_involved: document.getElementById("f_email").value,
+          transaction_ref: document.getElementById("f_txn").value,
+          location: document.getElementById("f_location").value
+        };
+      }
+      if (next >= 5) {
+        state.reporter = {
+          full_name: document.getElementById("f_name").value,
+          phone: document.getElementById("f_phone2").value,
+          location: document.getElementById("f_loc2").value,
+          organisation: document.getElementById("f_org2").value
+        };
+      }
+      if (next === 6) state.channel = document.getElementById("f_channel").value;
+      if (next === 6) renderReview();
+    }
+
+    window.useGuided = () => {
+      const parts = GUIDED.map(([id, label]) => {
+        const v = document.getElementById(id).value.trim();
+        return v ? `${label} ${v}` : null;
+      }).filter(Boolean);
+      if (parts.length) document.getElementById("f_description").value = parts.join("\n");
+    };
+
+    function renderReview() {
+      const meta = Object.entries(state.metadata).filter(([, v]) => v);
+      document.getElementById("reviewBox").innerHTML = `
+        <strong>${esc(state.category)}</strong><br>
+        <span class="text-muted">${esc(state.description)}</span><br>
+        ${meta.map(([k, v]) => `<span class="text-muted">${esc(k.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()))}:</span> ${esc(v)}<br>`).join("")}
+        <hr style="border-color:var(--border-light)">
+        Reporter: <strong>${esc(state.reporter.full_name || "Not provided")}</strong> ${esc(state.reporter.phone ? "· " + state.reporter.phone : "")}
+        <br>Submit via: <strong>${esc(state.channel)}</strong>`;
+    }
+
+    window.submitReport = async () => {
+      if (!state.category) return showFlash("Please choose a category.", "error");
+      if (state.description.trim().length < 10) return showFlash("Please describe the incident (at least 10 characters).", "error");
+      const btn = document.getElementById("submitBtn");
+      btn.disabled = true; btn.textContent = "Submitting...";
+      const incidentId = crypto.randomUUID();
+      const now = new Date();
+      const docData = {
+        user_email: currentUser.email.toLowerCase(),
+        category: state.category,
+        description: state.description.trim(),
+        message: state.description.trim(),
+        incident_date: state.metadata.incident_date || null,
+        incident_time: state.metadata.incident_time || "",
+        platform: state.metadata.platform || "",
+        additional_information: JSON.stringify({ ...state.metadata, ...state.reporter }),
+        status: "submitted",
+        created_at: now,
+        updated_at: now
+      };
+      try {
+        await setDoc(doc(db, "incidents", incidentId), docData);
+        await setDoc(doc(db, "incidents", incidentId, "submissions", crypto.randomUUID()), {
+          channel: state.channel,
+          attempted_at: now,
+          status: "prepared"
+        });
+        window.location.href = `reports.html?id=${encodeURIComponent(incidentId)}&submitted=1`;
+      } catch (err) {
+        showFlash(err.message || "Submission failed. Please try again.", "error");
+        btn.disabled = false; btn.textContent = "Submit Report";
+      }
+    };
+  </script>
+</body>
+</html>
