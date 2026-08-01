@@ -319,7 +319,7 @@ now = datetime.utcnow()
 **Fix**: Refactored to use a single `get_or_init_draft()` function that properly handles the session state without recursion. Simplified the draft management to use Flask's session object directly.
 
 ### Bug 5: Jinja2 Template Syntax in Python Strings
-**Problem**: When writing template content using Python string operations, the Jinja2 template syntax `{{ }}` and `{% %}` conflicted with Python's f-string formatting when they contained quotes.
+**Problem**: When writing template content using Python string operations, the Jinja2 template syntax `{{ }}` and Jinja block tags conflicted with Python's f-string formatting when they contained quotes.
 
 **Fix**: Used the Write tool for templates instead of trying to generate them through Python string manipulation in PowerShell.
 
