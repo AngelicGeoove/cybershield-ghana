@@ -12,7 +12,7 @@ export const db = getFirestore(app);
 export function requireAuth(callback) {
   onAuthStateChanged(auth, (user) => {
     if (!user) {
-      window.location.replace("index.html");
+      window.location.replace("login.html");
       return;
     }
     callback(user);
@@ -29,33 +29,52 @@ export function redirectIfSignedIn(callback) {
   });
 }
 
-// ---------- navigation ----------
+// ---------- navigation (mirrors the desktop base.html navbar) ----------
 const NAV_ITEMS = [
-  ["dashboard.html", "Dashboard"],
-  ["report.html", "Report Incident"],
-  ["reports.html", "My Reports"],
-  ["notifications.html", "Notifications"],
+  ["dashboard.html", "Home"],
+  ["report.html", "Report"],
+  ["reports.html", "Cyber Log"],
   ["awareness.html", "Stay Safe"],
-  ["channels.html", "Contact CSA"],
 ];
 
 export function renderNav(activePage) {
-  const navbar = document.getElementById("navbar");
-  if (!navbar) return;
+  const host = document.getElementById("navbar");
+  if (!host) return;
   const user = auth.currentUser;
-  const links = NAV_ITEMS.map(([href, label]) =>
-    `<a href="${href}" class="${href === activePage ? "active" : ""}">${label}</a>`
-  ).join("");
   const fullName = user && user.displayName ? user.displayName : (user && user.email ? user.email.split("@")[0] : "");
   const firstName = fullName ? fullName.split(" ")[0] : "";
-  navbar.innerHTML = `
-    <a class="brand" href="dashboard.html">Cyber<span>Shield</span> Ghana</a>
-    <div class="nav-links">
-      ${links}
-      <a href="profile.html">Profile</a>
-      <span class="nav-user">${firstName ? `👤 ${firstName}` : ""}</span>
-      <a href="#" id="logoutLink" title="Sign out">Logout</a>
-    </div>`;
+
+  const links = NAV_ITEMS
+    .map(([href, label]) =>
+      `<li class="nav-item"><a class="nav-link ${href === activePage ? "active" : ""}" href="${href}">${label}</a></li>`)
+    .join("");
+
+  host.innerHTML = `
+  <nav class="navbar navbar-expand-lg navbar-light sticky-top">
+    <div class="container">
+      <a class="navbar-brand" href="dashboard.html">🛡️ Cyber<span>Shield</span></a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          ${links}
+        </ul>
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link" href="notifications.html">🔔 Notifications</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="profile.html">👤 ${esc(firstName)}</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#" id="logoutLink">Logout</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>`;
+
   document.getElementById("logoutLink").addEventListener("click", async (e) => {
     e.preventDefault();
     await signOut(auth);
@@ -67,7 +86,8 @@ export function renderNav(activePage) {
 export function showFlash(msg, type = "info") {
   const el = document.getElementById("flash");
   if (!el) return;
-  el.className = `alert alert-${type}`;
+  const cls = { info: "alert-info", success: "alert-success", error: "alert-danger" }[type] || "alert-info";
+  el.className = `alert ${cls} mb-4`;
   el.textContent = msg;
   el.classList.remove("d-none");
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -92,7 +112,14 @@ export function statusLabel(s) {
 }
 
 export function statusBadge(s) {
-  return `<span class="badge badge-${s || "draft"}">${statusLabel(s)}</span>`;
+  return `<span class="badge badge-status badge-${esc(s || "draft")}">${esc(statusLabel(s))}</span>`;
+}
+
+export function fmtDay(ts) {
+  if (!ts) return "N/A";
+  if (ts.toDate) ts = ts.toDate();
+  const d = ts instanceof Date ? ts : new Date(ts);
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 }
 
 export function esc(str) {

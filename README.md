@@ -47,7 +47,7 @@ This is an independent application designed to facilitate reporting to the Cyber
 ## Requirements
 Python 3.11+ with the following packages:
 ```
-pip install Flask Flask-Login Flask-SQLAlchemy Flask-WTF email-validator bcrypt reportlab
+pip install -r requirements.txt
 ```
 
 ## Project Structure
@@ -55,9 +55,12 @@ pip install Flask Flask-Login Flask-SQLAlchemy Flask-WTF email-validator bcrypt 
 CyberShieldGhana/
 ├── app.py                  # Main application entry point
 ├── config.py               # Configuration settings
-├── extensions.py           # Flask extensions (db, login, csrf)
-├── models.py               # Database models
+├── extensions.py           # Flask extensions (login, csrf)
+├── models.py               # Plain data models (Firestore-backed)
 ├── requirements.txt        # Python dependencies
+├── firestore.rules         # Firestore security rules (publish in the console)
+├── migrate_sqlite_to_firestore.py  # One-time legacy SQLite migration
+├── promote_user.py         # Bootstrap tool: python promote_user.py <email> admin
 ├── routes/                 # Route blueprints
 │   ├── auth.py             # Authentication routes
 │   ├── dashboard.py        # Dashboard routes
@@ -67,16 +70,37 @@ CyberShieldGhana/
 │   ├── awareness.py        # Cybersecurity awareness routes
 │   ├── profile.py          # Profile management routes
 │   ├── settings.py         # Settings routes
+│   ├── investigator.py     # Investigator console routes
 │   └── admin.py            # Admin dashboard routes
 ├── services/               # Business logic services
+│   ├── firebase_service.py     # Firestore data layer
 │   ├── submission_service.py   # Report submission logic
 │   └── export_service.py       # PDF export logic
 ├── templates/              # HTML templates (Jinja2)
 ├── static/                 # CSS and JavaScript files
 │   ├── css/style.css
 │   └── js/main.js
-└── uploads/                # Uploaded evidence files
+├── docs/                   # Static web client (GitHub Pages)
+│   ├── index.html          # Landing page
+│   ├── login.html / register.html
+│   ├── dashboard.html
+│   ├── report.html         # Report wizard
+│   ├── reports.html        # Cyber Log + track case
+│   ├── notifications.html / profile.html
+│   ├── awareness.html / channels.html
+│   ├── privacy.html / terms.html
+│   ├── css/style.css       # Same theme as the desktop app
+│   └── js/                 # Firebase web SDK client
+└── uploads/                # Local evidence files (desktop only)
 ```
+
+## Web Version (GitHub Pages)
+The static web client lives in `docs/` and is served by GitHub Pages.
+It uses the same Firestore database as the desktop app, so reports are
+shared instantly between both. The web version provides the public/user
+experience only (admin and investigator consoles are desktop-only by design).
+
+Live site: <https://angelicgeoove.github.io/cybershield-ghana/>
 
 ## Important Notice
 This is an independent application. The Cyber Security Authority (CSA) of Ghana is an external authority. This application is responsible for collecting, structuring, and facilitating report submissions. It does not investigate incidents, determine guilt, or guarantee outcomes.

@@ -3,65 +3,74 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CyberShield Ghana - Report Cybercrime</title>
+  <title>CyberShield Ghana - Cyber Incident Reporting</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <header class="navbar">
-    <a class="brand" href="index.html">🛡️ Cyber<span>Shield</span> Ghana</a>
-    <div class="nav-actions">
-      <a class="btn btn-outline" href="login.html">Login</a>
-      <a class="btn btn-primary" href="register.html">Register</a>
+
+  <nav class="navbar navbar-expand-lg navbar-light sticky-top">
+    <div class="container">
+      <a class="navbar-brand" href="index.html">🛡️ Cyber<span>Shield</span></a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="login.html">Login</a></li>
+          <li class="nav-item"><a class="nav-link btn btn-report" href="register.html">Get Started</a></li>
+        </ul>
+      </div>
     </div>
-  </header>
+  </nav>
 
-  <main>
-    <section class="hero">
-      <div class="container">
-        <h1>Cyber<span>Shield</span> Ghana</h1>
-        <p class="lead">Report Cybercrime. Keep Track. Stay Informed.</p>
-        <p>Mobile-Based Cybercrime and Cybersecurity Incident Reporting, Assistance and Tracking Application</p>
-        <p class="small text-muted">An independent application designed to facilitate reporting to the Cyber Security Authority (CSA)</p>
-        <div class="hero-actions">
-          <a class="btn btn-primary" href="register.html">Get Started</a>
-          <a class="btn btn-outline" href="login.html">Login</a>
-        </div>
+  <div class="hero">
+    <div class="container">
+      <h1>🛡️ Cyber<span>Shield</span> Ghana</h1>
+      <p class="lead">Report Cybercrime. Keep Track. Stay Informed.</p>
+      <p class="text-muted">Mobile-Based Cybercrime and Cybersecurity Incident Reporting, Assistance and Tracking Application</p>
+      <hr class="w-50 mx-auto border-secondary">
+      <p class="text-muted small">An independent application designed to facilitate reporting to the Cyber Security Authority (CSA)</p>
+      <div class="mt-4">
+        <a href="register.html" class="btn btn-report btn-lg me-2">Get Started</a>
+        <a href="login.html" class="btn btn-outline-light btn-lg">Login</a>
       </div>
-    </section>
-
-    <section style="margin-top:2rem;">
-      <div class="stat-row" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));">
-        <div class="feature-card">
-          <div class="feature-icon">🔒</div>
-          <h5>Secure Reporting</h5>
-          <p>File cybercrime reports securely with end-to-end protection and strong authentication.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">📋</div>
-          <h5>Track Your Reports</h5>
-          <p>Maintain a personal Cyber Log of all your incident reports and track their status.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">📱</div>
-          <h5>Multiple Channels</h5>
-          <p>Submit reports via CSA Online Form, Email, or WhatsApp, all from one app.</p>
-        </div>
-      </div>
-    </section>
-
-    <section style="margin-top:1.5rem;">
-      <div class="card" style="padding:1.25rem;">
-        <h5>⚠️ Important Notice</h5>
-        <p class="mb-0 small text-muted" style="color:var(--text-secondary);">
-          This is an independent application and is not an official CSA application. It is designed to facilitate reporting to the Cyber Security Authority of Ghana. Only submit reports through official CSA channels. If you are in immediate danger, please contact emergency services or the CSA directly.
-        </p>
-      </div>
-    </section>
-  </main>
-
-  <div class="footer">
-    CyberShield Ghana &mdash; Independent application for facilitating reporting to the Cyber Security Authority (CSA).<br>
-    This is not an official CSA application. <a href="privacy.html">Privacy Policy</a> | <a href="terms.html">Terms of Use</a>
+    </div>
   </div>
+
+  <div class="container mt-5">
+    <div class="row text-center">
+      <div class="col-md-4 mb-4">
+        <div class="card p-4 h-100">
+          <div class="display-6 mb-3">🔒</div>
+          <h5>Secure Reporting</h5>
+          <p class="text-muted small">File cybercrime reports securely with strong authentication and strict data rules.</p>
+        </div>
+      </div>
+      <div class="col-md-4 mb-4">
+        <div class="card p-4 h-100">
+          <div class="display-6 mb-3">📋</div>
+          <h5>Track Your Reports</h5>
+          <p class="text-muted small">Maintain a personal Cyber Log of all your incident reports and track their status.</p>
+        </div>
+      </div>
+      <div class="col-md-4 mb-4">
+        <div class="card p-4 h-100">
+          <div class="display-6 mb-3">📱</div>
+          <h5>Multiple Channels</h5>
+          <p class="text-muted small">Submit reports through the CSA Online Form, Email or WhatsApp channels.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="container">
+      <p class="mb-1">CyberShield Ghana &middot; Report cybercrime to the Cyber Security Authority</p>
+      <p class="mb-0"><a href="privacy.html">Privacy Policy</a> &middot; <a href="terms.html">Terms of Use</a></p>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

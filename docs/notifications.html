@@ -4,17 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Notifications - CyberShield Ghana</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <nav class="navbar" id="navbar"></nav>
-  <main>
-    <h2>Notifications</h2>
+  <div id="navbar"></div>
+  <main class="container py-4">
+    <h2 class="mb-4">🔔 Notifications</h2>
     <div id="flash" class="alert d-none"></div>
     <div id="list"></div>
   </main>
-  <div class="footer">CyberShield Ghana &middot; <a href="privacy.html">Privacy</a> &middot; <a href="terms.html">Terms</a></div>
+  <footer>
+    <div class="container">
+      <p class="mb-0"><a href="privacy.html">Privacy Policy</a> &middot; <a href="terms.html">Terms of Use</a></p>
+    </div>
+  </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script type="module">
     import { auth, db, requireAuth, renderNav, fmtDate, esc } from "./js/common.js";
     import { collection, query, where, onSnapshot, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -28,17 +34,17 @@
         items.sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
         const el = document.getElementById("list");
         if (!items.length) {
-          el.innerHTML = `<div class="card"><p class="text-muted mb-0">You have no notifications yet.</p></div>`;
+          el.innerHTML = `<div class="card p-4 text-center"><p class="text-muted mb-0">You have no notifications yet.</p></div>`;
           return;
         }
         el.innerHTML = items.map(n => `
-          <div class="card ${n.read_status ? "" : "mb-3"}" style="${n.read_status ? "opacity:.65" : ""}">
-            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem">
+          <div class="card p-3 mb-3" style="${n.read_status ? "opacity:.6" : ""}">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
               <strong>${esc(n.title)}</strong>
-              <span class="small text-muted">${fmtDate(n.created_at)}</span>
+              <span class="text-muted small">${fmtDate(n.created_at)}</span>
             </div>
-            <p class="mb-2">${esc(n.message)}</p>
-            ${n.read_status ? "" : `<button class="btn btn-sm btn-outline" data-id="${n.id}">Mark as read</button>`}
+            <p class="mb-2 mt-1">${esc(n.message)}</p>
+            ${n.read_status ? "" : `<button class="btn btn-outline-light btn-sm" data-id="${n.id}">Mark as read</button>`}
           </div>`).join("");
         el.querySelectorAll("[data-id]").forEach(btn => btn.addEventListener("click", async () => {
           await updateDoc(doc(db, "notifications", btn.dataset.id), { read_status: true });

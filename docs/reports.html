@@ -3,60 +3,127 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Reports - CyberShield Ghana</title>
+  <title>Cyber Log - CyberShield Ghana</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <nav class="navbar" id="navbar"></nav>
-  <main>
-    <h2>My Reports</h2>
-    <div id="flash" class="alert d-none"></div>
-
+  <div id="navbar"></div>
+  <main class="container py-4">
     <div id="listView">
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Reference</th><th>Category</th><th>Date</th><th>Status</th><th></th></tr></thead>
-          <tbody id="rows"></tbody>
-        </table>
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Cyber Log</h2>
+        <a href="report.html" class="btn btn-report">+ New Report</a>
       </div>
+      <div id="flash" class="alert d-none"></div>
+
+      <div class="card p-3 mb-4">
+        <form id="filterForm" class="row g-2">
+          <div class="col-md-4">
+            <input type="text" class="form-control" id="fSearch" placeholder="Search reports...">
+          </div>
+          <div class="col-md-3">
+            <select class="form-select" id="fStatus">
+              <option value="">All Statuses</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <button type="submit" class="btn btn-primary me-2">Filter</button>
+            <button type="button" class="btn btn-outline-light" id="clearBtn">Clear</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="row" id="cards"></div>
     </div>
 
     <div id="detailView" class="d-none"></div>
   </main>
-  <div class="footer">CyberShield Ghana &middot; <a href="privacy.html">Privacy</a> &middot; <a href="terms.html">Terms</a></div>
+  <footer>
+    <div class="container">
+      <p class="mb-0"><a href="privacy.html">Privacy Policy</a> &middot; <a href="terms.html">Terms of Use</a></p>
+    </div>
+  </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script type="module">
-    import { auth, db, requireAuth, renderNav, showFlash, fmtDate, statusBadge, esc } from "./js/common.js";
-    import { collection, query, where, orderBy, onSnapshot, getDoc, getDocs, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { auth, db, requireAuth, renderNav, showFlash, fmtDay, statusBadge, esc } from "./js/common.js";
+    import { collection, query, where, orderBy, onSnapshot, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    let allIncidents = [];
+    let searchTerm = "";
+    let statusFilter = "";
 
     requireAuth((user) => {
       renderNav("reports.html");
       const params = new URLSearchParams(location.search);
-      if (params.get("submitted")) showFlash("Report submitted successfully. Reference: " + params.get("id"), "success");
+      if (params.get("submitted")) showFlash(`Report submitted successfully. Reference: ${params.get("id")}`, "success");
 
       const q = query(collection(db, "incidents"), where("user_email", "==", user.email.toLowerCase()), orderBy("created_at", "desc"));
       onSnapshot(q, (snap) => {
-        const incidents = [];
-        snap.forEach(d => incidents.push({ id: d.id, ...d.data() }));
-        renderList(incidents);
+        allIncidents = [];
+        snap.forEach(d => allIncidents.push({ id: d.id, ...d.data() }));
+        renderList();
         if (params.get("id")) openDetail(params.get("id"));
+      });
+
+      document.getElementById("filterForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        searchTerm = document.getElementById("fSearch").value.trim().toLowerCase();
+        renderList();
+      });
+      document.getElementById("clearBtn").addEventListener("click", () => {
+        searchTerm = "";
+        document.getElementById("fSearch").value = "";
+        document.getElementById("fStatus").value = "";
+        statusFilter = "";
+        renderList();
       });
     });
 
-    function renderList(incidents) {
-      const tbody = document.getElementById("rows");
-      if (incidents.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="text-muted">No reports yet. <a href="report.html">Report an incident</a>.</td></tr>`;
+    function renderList() {
+      const sel = document.getElementById("fStatus");
+      const seen = {};
+      allIncidents.forEach(i => { if (!seen[i.status]) { seen[i.status] = true; } });
+      const statuses = Object.keys(seen).sort();
+      if (sel.options.length !== statuses.length + 1) {
+        sel.innerHTML = `<option value="">All Statuses</option>` + statuses.map(s =>
+          `<option value="${esc(s)}">${esc(statusLabel(s))}</option>`).join("");
+      }
+
+      const filtered = allIncidents.filter(i => {
+        const matchesStatus = !statusFilter || i.status === statusFilter;
+        const haystack = `${i.category} ${i.description} ${i.id}`.toLowerCase();
+        const matchesSearch = !searchTerm || haystack.includes(searchTerm);
+        return matchesStatus && matchesSearch;
+      });
+
+      const cards = document.getElementById("cards");
+      if (!filtered.length) {
+        cards.innerHTML = `<div class="col-12">
+          <div class="card p-4 text-center">
+            <p class="text-muted">No reports found.</p>
+            <a href="report.html" class="btn btn-report mx-auto">Report Your First Incident</a>
+          </div>
+        </div>`;
         return;
       }
-      tbody.innerHTML = incidents.map(i => `
-        <tr>
-          <td><a href="reports.html?id=${encodeURIComponent(i.id)}">${esc(i.id.slice(0, 8))}</a></td>
-          <td>${esc(i.category)}</td>
-          <td>${fmtDate(i.created_at)}</td>
-          <td>${statusBadge(i.status)}</td>
-          <td><a class="btn btn-sm btn-outline" href="reports.html?id=${encodeURIComponent(i.id)}">Track</a></td>
-        </tr>`).join("");
+      cards.innerHTML = filtered.map(i => `
+        <div class="col-md-6 mb-3">
+          <div class="card report-card p-3" onclick="window.location.href='reports.html?id=${encodeURIComponent(i.id)}'">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <h6 class="mb-1">${esc(i.category)}</h6>
+                <small class="text-muted">${esc(i.id)}</small>
+              </div>
+              ${statusBadge(i.status)}
+            </div>
+            <div class="mt-2">
+              <small class="text-muted">${fmtDay(i.created_at)}</small>
+            </div>
+            ${i.description ? `<p class="mt-2 mb-0 text-muted small">${esc(i.description.slice(0, 150))}${i.description.length > 150 ? "..." : ""}</p>` : ""}
+          </div>
+        </div>`).join("");
     }
 
     async function openDetail(id) {
@@ -65,49 +132,73 @@
       dv.classList.remove("d-none");
 
       const snap = await getDoc(doc(db, "incidents", id));
-      if (!snap.exists()) { dv.innerHTML = `<p class="text-muted">Report not found.</p><a class="btn btn-outline" href="reports.html">Back</a>`; return; }
+      if (!snap.exists()) {
+        dv.innerHTML = `<div class="card p-4 text-center"><p class="text-muted">Report not found.</p>
+          <a class="btn btn-outline-light mx-auto" href="reports.html">Back to Cyber Log</a></div>`;
+        return;
+      }
       const inc = { id, ...snap.data() };
 
-      // metadata
       let metaRows = "";
       try {
         const raw = JSON.parse(inc.additional_information || "{}");
         metaRows = Object.entries(raw).filter(([, v]) => v).map(([k, v]) =>
-          `<div><span class="text-muted">${esc(k.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()))}:</span> ${esc(v)}</div>`).join("");
-      } catch (e) { metaRows = `<div>${esc(inc.additional_information || "")}</div>`; }
+          `<tr><td><strong>${esc(k.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()))}</strong></td><td>${esc(v)}</td></tr>`).join("");
+      } catch (e) { metaRows = `<tr><td><strong>Additional Information</strong></td><td>${esc(inc.additional_information || "")}</td></tr>`; }
 
-      // comments
       const comments = await getDocs(collection(db, "incidents", id, "comments"));
-      let thread = '<p class="small text-muted">No messages yet.</p>';
-      if (!comments.empty) {
-        const items = [];
-        comments.forEach(c => items.push(c.data()));
-        items.sort((a, b) => (a.created_at || 0) - (b.created_at || 0));
-        thread = items.map(c => `
-          <div class="thread-item">
-            <strong>${esc(c.author_role === "investigator" ? "Investigator" : "Investigator")}</strong>
-            <span class="small text-muted">${fmtDate(c.created_at)}</span>
+      const items = [];
+      comments.forEach(c => items.push(c.data()));
+      items.sort((a, b) => (a.created_at || 0) - (b.created_at || 0));
+      const thread = items.length
+        ? items.map(c => `
+          <div class="list-group-item bg-transparent">
+            <strong>👤 Investigator</strong>
+            <span class="text-muted small"> · ${fmtDay(c.created_at)}</span>
             <p class="mb-0">${esc(c.message)}</p>
-          </div>`).join("");
-      }
+          </div>`).join("")
+        : `<p class="text-muted small mb-0">No messages from investigators yet.</p>`;
 
       dv.innerHTML = `
-        <a class="btn btn-sm btn-outline mb-3" href="reports.html">&larr; All reports</a>
-        <div class="card">
-          <h4>${esc(inc.category)} ${statusBadge(inc.status)}</h4>
-          <div class="small text-muted">Reference: ${esc(inc.id)} &middot; Submitted ${fmtDate(inc.created_at)}</div>
-          <p class="mt-3">${esc(inc.description || "")}</p>
-          ${metaRows ? `<hr style="border-color:var(--border-light)"><div class="small">${metaRows}</div>` : ""}
+        <div class="mb-4">
+          <div class="d-flex justify-content-between align-items-center">
+            <h2 class="mb-0">Report Details</h2>
+            <a href="reports.html" class="btn btn-outline-light">← Back to Cyber Log</a>
+          </div>
+          <p class="text-muted small mt-2 mb-0">
+            Internal Report ID: <code class="me-1">${esc(inc.id)}</code>
+            <button type="button" class="btn btn-outline-light btn-sm py-0" onclick="copyId('${esc(inc.id)}', this)">📋 Copy</button>
+            | Created: ${fmtDay(inc.created_at)}
+          </p>
         </div>
-        <div class="card">
+        <div class="card p-4 mb-3">
+          <h5>Incident Information</h5>
+          <table class="table table-sm mb-0">
+            <tr><td><strong>Category</strong></td><td>${esc(inc.category)}</td></tr>
+            <tr><td><strong>Status</strong></td><td>${statusBadge(inc.status)}</td></tr>
+            <tr><td><strong>Description</strong></td><td>${esc(inc.description || "")}</td></tr>
+            ${metaRows}
+          </table>
+        </div>
+        <div class="card p-4 mb-3">
           <h5>Investigator Updates</h5>
-          ${thread}
+          <div class="list-group list-group-flush">
+            ${thread}
+          </div>
         </div>
-        <div class="card small">
+        <div class="card p-4 small">
           <span class="text-muted">Need to attach evidence or files?</span> Send them to
           <strong>report@csa.gov.gh</strong> or via official CSA channels quoting your reference.
         </div>`;
     }
+
+    window.copyId = (id, btn) => {
+      navigator.clipboard.writeText(id).then(() => {
+        const original = btn.textContent;
+        btn.textContent = "✅ Copied";
+        setTimeout(() => { btn.textContent = original; }, 1500);
+      });
+    };
   </script>
 </body>
 </html>
