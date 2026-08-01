@@ -44,17 +44,22 @@
       <!-- STEP 2: Description -->
       <div class="step-panel d-none" id="step2">
         <h5>Step 2: Describe what happened</h5>
-        <p class="text-muted small">Be as specific as possible. Use the guided prompts if you are unsure.</p>
+        <p class="text-muted small">Be as specific as possible. Not sure what to write? Switch on the guided questionnaire below.</p>
         <div class="row">
           <div class="col-md-7 mb-3">
             <label class="form-label">Description</label>
             <textarea class="form-control" id="f_description" rows="6" placeholder="e.g. I received a text claiming my mobile money account was locked and asking me to dial *713# and enter my PIN..."></textarea>
-            <button type="button" class="btn btn-outline-light btn-sm mt-2" onclick="useGuided()">✨ Use guided helper</button>
+            <div class="form-check form-switch mt-2">
+              <input class="form-check-input" type="checkbox" role="switch" id="guidedToggle">
+              <label class="form-check-label small" for="guidedToggle">✨ Use guided questionnaire</label>
+            </div>
           </div>
-          <div class="col-md-5">
+          <div class="col-md-5 d-none" id="guidedPanel">
             <div class="card p-3 small" style="background:var(--bg-elevated)">
-              <strong class="mb-2">Guided prompts</strong>
+              <strong class="mb-1">Guided prompts</strong>
+              <p class="text-muted small mb-2">Answer the questions and they will be combined into your description.</p>
               <div id="guidedFields"></div>
+              <button type="button" class="btn btn-primary btn-sm mt-2" onclick="useGuided()">Apply to description</button>
             </div>
           </div>
         </div>
@@ -184,6 +189,12 @@
       document.getElementById("guidedFields").innerHTML = GUIDED.map(([id, label]) =>
         `<label class="form-label mt-2" style="font-size:.8rem">${esc(label)}</label><textarea class="form-control" id="${id}" style="min-height:44px"></textarea>`).join("");
 
+      // Guided questionnaire toggle: show/hide the prompts panel
+      document.getElementById("guidedToggle").addEventListener("change", (e) => {
+        document.getElementById("guidedPanel").classList.toggle("d-none", !e.target.checked);
+        if (e.target.checked) window.useGuided();
+      });
+
       try {
         const snap = await getDoc(doc(db, "users", user.email.toLowerCase()));
         if (snap.exists()) {
@@ -216,7 +227,15 @@
 
     function capture(next) {
       if (next >= 2) state.category = document.getElementById("f_category").value;
-      if (next >= 3) state.description = document.getElementById("f_description").value;
+      if (next >= 3) {
+        state.description = document.getElementById("f_description").value;
+        // If the guided questionnaire is switched on, compose answers into the description
+        const guided = document.getElementById("guidedToggle");
+        if (guided && guided.checked) {
+          const composed = composeGuided();
+          if (composed) state.description = composed;
+        }
+      }
       if (next >= 4) {
         state.metadata = {
           incident_date: document.getElementById("f_date").value,
@@ -242,12 +261,17 @@
       if (next === 6) renderReview();
     }
 
-    window.useGuided = () => {
+    function composeGuided() {
       const parts = GUIDED.map(([id, label]) => {
         const v = document.getElementById(id).value.trim();
         return v ? `${label} ${v}` : null;
       }).filter(Boolean);
-      if (parts.length) document.getElementById("f_description").value = parts.join("\n");
+      return parts.length ? parts.join("\n") : "";
+    }
+
+    window.useGuided = () => {
+      const composed = composeGuided();
+      if (composed) document.getElementById("f_description").value = composed;
     };
 
     function renderReview() {
