@@ -7,196 +7,61 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-
-  <div class="hero">
-    <h1>Cyber<span style="color:var(--primary)">Shield</span> Ghana</h1>
-    <p>Report cybercrime securely to the Cyber Security Authority of Ghana.
-       Track your case, respond to investigators, and stay protected online.</p>
-    <div class="hero-actions">
-      <a class="btn btn-primary" href="#login">Sign In</a>
-      <a class="btn btn-outline" href="#register">Create Account</a>
+  <header class="navbar">
+    <a class="brand" href="index.html">🛡️ Cyber<span>Shield</span> Ghana</a>
+    <div class="nav-actions">
+      <a class="btn btn-outline" href="login.html">Login</a>
+      <a class="btn btn-primary" href="register.html">Register</a>
     </div>
-  </div>
+  </header>
 
-  <div class="auth-wrap">
-    <div id="flash" class="alert d-none"></div>
+  <main>
+    <section class="hero">
+      <div class="container">
+        <h1>Cyber<span>Shield</span> Ghana</h1>
+        <p class="lead">Report Cybercrime. Keep Track. Stay Informed.</p>
+        <p>Mobile-Based Cybercrime and Cybersecurity Incident Reporting, Assistance and Tracking Application</p>
+        <p class="small text-muted">An independent application designed to facilitate reporting to the Cyber Security Authority (CSA)</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="register.html">Get Started</a>
+          <a class="btn btn-outline" href="login.html">Login</a>
+        </div>
+      </div>
+    </section>
 
-    <div class="tab-bar">
-      <button id="tabLogin" class="active">Sign In</button>
-      <button id="tabRegister">Create Account</button>
-    </div>
+    <section style="margin-top:2rem;">
+      <div class="stat-row" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));">
+        <div class="feature-card">
+          <div class="feature-icon">🔒</div>
+          <h5>Secure Reporting</h5>
+          <p>File cybercrime reports securely with end-to-end protection and strong authentication.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📋</div>
+          <h5>Track Your Reports</h5>
+          <p>Maintain a personal Cyber Log of all your incident reports and track their status.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📱</div>
+          <h5>Multiple Channels</h5>
+          <p>Submit reports via CSA Online Form, Email, or WhatsApp, all from one app.</p>
+        </div>
+      </div>
+    </section>
 
-    <!-- LOGIN -->
-    <div class="card" id="panelLogin">
-      <form id="loginForm">
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" id="loginEmail" required>
-        </div>
-        <div class="form-group">
-          <label>Password</label>
-          <input type="password" id="loginPassword" required>
-        </div>
-        <button class="btn btn-primary btn-block" type="submit" id="loginBtn">Sign In</button>
-        <div class="mt-3 small text-muted">
-          <a href="#" id="forgotLink">Forgot password?</a>
-        </div>
-      </form>
-    </div>
-
-    <!-- REGISTER -->
-    <div class="card d-none" id="panelRegister">
-      <form id="registerForm">
-        <div class="form-group">
-          <label>Full name</label>
-          <input type="text" id="regName" required>
-        </div>
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" id="regEmail" required>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Phone (optional)</label>
-            <input type="text" id="regPhone">
-          </div>
-          <div class="form-group">
-            <label>Age (optional)</label>
-            <input type="number" id="regAge" min="1" max="120">
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Password (min 8 characters)</label>
-          <input type="password" id="regPassword" minlength="8" required>
-        </div>
-        <div class="form-group">
-          <label>Confirm password</label>
-          <input type="password" id="regPassword2" required>
-        </div>
-        <div class="form-group">
-          <label>Location (optional)</label>
-          <input type="text" id="regLocation">
-        </div>
-        <div class="form-group">
-          <label>Organisation (optional)</label>
-          <input type="text" id="regOrganisation">
-        </div>
-        <button class="btn btn-primary btn-block" type="submit" id="registerBtn">Create Account</button>
-      </form>
-    </div>
-
-    <!-- FORGOT PASSWORD -->
-    <div class="card d-none" id="panelForgot">
-      <form id="forgotForm">
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" id="forgotEmail" required>
-        </div>
-        <button class="btn btn-primary btn-block" type="submit">Send Reset Link</button>
-        <div class="mt-3 small text-muted"><a href="#" id="backToLogin">Back to sign in</a></div>
-      </form>
-    </div>
-  </div>
+    <section style="margin-top:1.5rem;">
+      <div class="card" style="padding:1.25rem;">
+        <h5>⚠️ Important Notice</h5>
+        <p class="mb-0 small text-muted" style="color:var(--text-secondary);">
+          This is an independent application and is not an official CSA application. It is designed to facilitate reporting to the Cyber Security Authority of Ghana. Only submit reports through official CSA channels. If you are in immediate danger, please contact emergency services or the CSA directly.
+        </p>
+      </div>
+    </section>
+  </main>
 
   <div class="footer">
-    <p class="mb-0">CyberShield Ghana &middot; Report cybercrime to the Cyber Security Authority &middot;
-      <a href="privacy.html">Privacy</a> &middot; <a href="terms.html">Terms</a></p>
+    CyberShield Ghana &mdash; Independent application for facilitating reporting to the Cyber Security Authority (CSA).<br>
+    This is not an official CSA application. <a href="privacy.html">Privacy Policy</a> | <a href="terms.html">Terms of Use</a>
   </div>
-
-  <script type="module">
-    import { auth, redirectIfSignedIn, showFlash, esc } from "./js/common.js";
-    import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import { db } from "./js/common.js";
-
-    redirectIfSignedIn();
-
-    // Tabs
-    function showPanel(name) {
-      document.getElementById("panelLogin").classList.toggle("d-none", name !== "login");
-      document.getElementById("panelRegister").classList.toggle("d-none", name !== "register");
-      document.getElementById("panelForgot").classList.toggle("d-none", name !== "forgot");
-      document.getElementById("tabLogin").classList.toggle("active", name === "login");
-      document.getElementById("tabRegister").classList.toggle("active", name === "register");
-    }
-    document.getElementById("tabLogin").addEventListener("click", () => showPanel("login"));
-    document.getElementById("tabRegister").addEventListener("click", () => showPanel("register"));
-    document.getElementById("forgotLink").addEventListener("click", (e) => { e.preventDefault(); showPanel("forgot"); });
-    document.getElementById("backToLogin").addEventListener("click", (e) => { e.preventDefault(); showPanel("login"); });
-    // Deep link from hero buttons
-    if (location.hash === "#register") showPanel("register");
-
-    // Login
-    document.getElementById("loginForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const btn = document.getElementById("loginBtn");
-      btn.disabled = true; btn.textContent = "Signing in...";
-      try {
-        await signInWithEmailAndPassword(auth, document.getElementById("loginEmail").value.trim(), document.getElementById("loginPassword").value);
-        window.location.replace("dashboard.html");
-      } catch (err) {
-        showFlash(friendlyError(err), "error");
-        btn.disabled = false; btn.textContent = "Sign In";
-      }
-    });
-
-    // Register: create Firebase Auth account + Firestore profile doc
-    document.getElementById("registerForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const name = document.getElementById("regName").value.trim();
-      const email = document.getElementById("regEmail").value.trim().toLowerCase();
-      const p1 = document.getElementById("regPassword").value;
-      const p2 = document.getElementById("regPassword2").value;
-      if (p1 !== p2) return showFlash("Passwords do not match.", "error");
-      const btn = document.getElementById("registerBtn");
-      btn.disabled = true; btn.textContent = "Creating account...";
-      try {
-        const cred = await createUserWithEmailAndPassword(auth, email, p1);
-        await setDoc(doc(db, "users", email), {
-          email: email,
-          full_name: name,
-          phone: document.getElementById("regPhone").value.trim(),
-          age: parseInt(document.getElementById("regAge").value) || null,
-          location: document.getElementById("regLocation").value.trim(),
-          organisation: document.getElementById("regOrganisation").value.trim(),
-          role: "user",
-          account_status: "active",
-          email_verified: false,
-          auth_uid: cred.user.uid,
-          created_at: new Date(),
-          updated_at: new Date()
-        });
-        window.location.replace("dashboard.html");
-      } catch (err) {
-        showFlash(friendlyError(err), "error");
-        btn.disabled = false; btn.textContent = "Create Account";
-      }
-    });
-
-    // Forgot password
-    document.getElementById("forgotForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      try {
-        await sendPasswordResetEmail(auth, document.getElementById("forgotEmail").value.trim());
-        showFlash("Password reset link sent. Check your email.", "success");
-        showPanel("login");
-      } catch (err) {
-        showFlash(friendlyError(err), "error");
-      }
-    });
-
-    function friendlyError(err) {
-      const map = {
-        "auth/user-not-found": "No account found with this email.",
-        "auth/wrong-password": "Incorrect password.",
-        "auth/invalid-credential": "Incorrect email or password.",
-        "auth/email-already-in-use": "An account with this email already exists.",
-        "auth/weak-password": "Password must be at least 8 characters.",
-        "auth/invalid-email": "Please enter a valid email address.",
-        "auth/too-many-requests": "Too many attempts. Please try again later."
-      };
-      return map[err.code] || (err.message || "Something went wrong.");
-    }
-  </script>
 </body>
 </html>

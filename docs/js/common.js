@@ -25,7 +25,7 @@ export function redirectIfSignedIn(callback) {
       window.location.replace("dashboard.html");
       return;
     }
-    callback();
+    if (typeof callback === "function") callback();
   });
 }
 
@@ -43,16 +43,17 @@ export function renderNav(activePage) {
   const navbar = document.getElementById("navbar");
   if (!navbar) return;
   const user = auth.currentUser;
-  const links = NAV_ITEMS
-    .map(([href, label]) =>
-      `<a href="${href}" class="${href === activePage ? "active" : ""}">${label}</a>`)
-    .join("");
-  const initials = user && user.displayName ? user.displayName.split(" ").map(w => w[0]).join("").slice(0, 2) : "";
+  const links = NAV_ITEMS.map(([href, label]) =>
+    `<a href="${href}" class="${href === activePage ? "active" : ""}">${label}</a>`
+  ).join("");
+  const fullName = user && user.displayName ? user.displayName : (user && user.email ? user.email.split("@")[0] : "");
+  const firstName = fullName ? fullName.split(" ")[0] : "";
   navbar.innerHTML = `
     <a class="brand" href="dashboard.html">Cyber<span>Shield</span> Ghana</a>
     <div class="nav-links">
       ${links}
       <a href="profile.html">Profile</a>
+      <span class="nav-user">${firstName ? `👤 ${firstName}` : ""}</span>
       <a href="#" id="logoutLink" title="Sign out">Logout</a>
     </div>`;
   document.getElementById("logoutLink").addEventListener("click", async (e) => {

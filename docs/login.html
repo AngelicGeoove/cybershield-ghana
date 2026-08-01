@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - CyberShield Ghana</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="navbar">
+    <a class="brand" href="index.html">🛡️ Cyber<span>Shield</span> Ghana</a>
+    <div class="nav-actions">
+      <a class="btn btn-outline" href="login.html">Login</a>
+      <a class="btn btn-primary" href="register.html">Register</a>
+    </div>
+  </header>
+
+  <main>
+    <div class="auth-wrap">
+      <div id="flash" class="alert d-none"></div>
+      <div class="card" style="padding:1.5rem;">
+        <h3 style="text-align:center;margin-bottom:1.25rem;">🔐 Login</h3>
+        <form id="loginForm">
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" id="loginEmail" required autofocus>
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="loginPassword" required>
+          </div>
+          <button class="btn btn-primary btn-block" type="submit" id="loginBtn">Login</button>
+        </form>
+        <hr style="border-color:var(--border-light);margin:1rem 0;">
+        <p class="small" style="text-align:center;margin-bottom:0;">Don't have an account? <a href="register.html">Register here</a></p>
+      </div>
+    </div>
+  </main>
+
+  <div class="footer">
+    CyberShield Ghana &mdash; Independent application for facilitating reporting to the Cyber Security Authority (CSA).<br>
+    This is not an official CSA application. <a href="privacy.html">Privacy Policy</a> | <a href="terms.html">Terms of Use</a>
+  </div>
+
+  <script type="module">
+    import { auth, redirectIfSignedIn, showFlash } from "./js/common.js";
+    import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    redirectIfSignedIn();
+
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById("loginBtn");
+      btn.disabled = true;
+      btn.textContent = "Signing in...";
+      try {
+        await signInWithEmailAndPassword(
+          auth,
+          document.getElementById("loginEmail").value.trim(),
+          document.getElementById("loginPassword").value
+        );
+        window.location.replace("dashboard.html");
+      } catch (err) {
+        showFlash(friendlyError(err), "error");
+        btn.disabled = false;
+        btn.textContent = "Login";
+      }
+    });
+
+    function friendlyError(err) {
+      const map = {
+        "auth/user-not-found": "No account found with this email.",
+        "auth/wrong-password": "Incorrect password.",
+        "auth/invalid-credential": "Incorrect email or password.",
+        "auth/invalid-email": "Please enter a valid email address.",
+        "auth/too-many-requests": "Too many attempts. Please try again later."
+      };
+      return map[err.code] || (err.message || "Something went wrong.");
+    }
+  </script>
+</body>
+</html>

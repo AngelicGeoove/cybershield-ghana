@@ -27,7 +27,7 @@
 
   <script type="module">
     import { auth, db, requireAuth, renderNav, showFlash, fmtDate, statusBadge, esc } from "./js/common.js";
-    import { collection, query, where, orderBy, onSnapshot, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { collection, query, where, orderBy, onSnapshot, getDoc, getDocs, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     requireAuth((user) => {
       renderNav("reports.html");
