@@ -1,0 +1,106 @@
+/* ============================================================
+   CyberShield Ghana - Light Theme
+   Activated by: <html data-theme="light">
+   Toggled by the navbar 🌙/☀️ button; preference saved in
+   localStorage ('cs-theme').
+   ============================================================ */
+
+:root[data-theme="light"] {
+    --primary: #3d7bd9;
+    --primary-dark: #2f66b8;
+    --primary-light: #dbe7fb;
+    --secondary: #5b6b85;
+    --success: #2f8f5b;
+    --success-dark: #27794c;
+    --danger: #d15d5d;
+    --danger-dark: #b94a4a;
+    --warning: #c08c2f;
+    --warning-dark: #a6772a;
+
+    --bg-body: #eef2f8;
+    --bg-surface: #ffffff;
+    --bg-elevated: #e6ecf5;
+    --bg-input: #ffffff;
+    --bg-light: #ffffff;
+    --bg-card: #ffffff;
+    --bg-white: #ffffff;
+
+    --text-primary: #1a2233;
+    --text-secondary: #3d4a63;
+    --text-muted: #6b7a94;
+
+    --border-light: #d8e0ee;
+    --border-strong: #b6c3da;
+    --border-focus: #3d7bd9;
+
+    --shadow-sm: 0 1px 3px rgba(20, 30, 50, 0.08);
+    --shadow-md: 0 4px 12px rgba(20, 30, 50, 0.1);
+    --shadow-lg: 0 8px 24px rgba(20, 30, 50, 0.12);
+}
+
+/* ---------- Overrides for hardcoded dark colors ---------- */
+:root[data-theme="light"] a:hover { color: #2f66b8; }
+
+:root[data-theme="light"] .hero {
+    background: linear-gradient(160deg, #dbe7fb 0%, var(--bg-body) 60%);
+}
+/* .hero::before keeps its shield SVG watermark - no override needed */
+
+/* Navbar hamburger icon - darker strokes for the light navbar */
+:root[data-theme="light"] .navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='%233d4a63' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+/* Alerts - light tints */
+:root[data-theme="light"] .alert-info {
+    background-color: #e3ecfa; color: #2f5aa8; border-color: #bcd2f2;
+}
+:root[data-theme="light"] .alert-success {
+    background-color: #e2f3e9; color: #1f6b43; border-color: #bfe3cf;
+}
+:root[data-theme="light"] .alert-danger {
+    background-color: #fbe7e7; color: #a03c3c; border-color: #f0c4c4;
+}
+:root[data-theme="light"] .alert-warning {
+    background-color: #f8efdb; color: #8a6518; border-color: #ead9a8;
+}
+
+/* Status badges - light tints */
+:root[data-theme="light"] .badge-draft,
+:root[data-theme="light"] .badge-closed,
+:root[data-theme="light"] .badge-user {
+    background-color: #e7ebf2; color: #4a5a75;
+}
+:root[data-theme="light"] .badge-ready,
+:root[data-theme="light"] .badge-awaiting_confirmation,
+:root[data-theme="light"] .badge-under_investigation {
+    background-color: #f8efdb; color: #8a6518;
+}
+:root[data-theme="light"] .badge-prepared,
+:root[data-theme="light"] .badge-submitted,
+:root[data-theme="light"] .badge-investigator {
+    background-color: #e3ecfa; color: #2f5aa8;
+}
+:root[data-theme="light"] .badge-sent,
+:root[data-theme="light"] .badge-resolved {
+    background-color: #e2f3e9; color: #1f6b43;
+}
+:root[data-theme="light"] .badge-failed {
+    background-color: #fbe7e7; color: #a03c3c;
+}
+:root[data-theme="light"] .badge-evidence_requested {
+    background-color: #f9e8f0; color: #a8447e;
+}
+:root[data-theme="light"] .badge-admin {
+    background-color: #f8efdb; color: #8a6518;
+}
+
+/* Scrollbar */
+:root[data-theme="light"] ::-webkit-scrollbar-track { background: var(--bg-body); }
+:root[data-theme="light"] ::-webkit-scrollbar-thumb { background: #b6c3da; }
+:root[data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: #93a5c4; }
+
+/* Desktop-only element (kept for consistency if ever used) */
+:root[data-theme="light"] .offline-banner {
+    background-color: #f8efdb; color: #8a6518; border-color: #ead9a8;
+}

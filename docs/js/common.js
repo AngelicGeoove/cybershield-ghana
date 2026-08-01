@@ -68,6 +68,9 @@ export function renderNav(activePage) {
             <a class="nav-link" href="profile.html">👤 ${esc(firstName)}</a>
           </li>
           <li class="nav-item">
+            <button class="nav-link theme-toggle" type="button" aria-label="Toggle theme" title="Toggle light/dark theme">${themeIcon()}</button>
+          </li>
+          <li class="nav-item">
             <a class="nav-link" href="#" id="logoutLink">Logout</a>
           </li>
         </ul>
@@ -80,6 +83,7 @@ export function renderNav(activePage) {
     await signOut(auth);
     window.location.replace("index.html");
   });
+  document.querySelectorAll(".theme-toggle").forEach((b) => b.addEventListener("click", toggleTheme));
 }
 
 // ---------- helpers ----------
@@ -120,6 +124,27 @@ export function fmtDay(ts) {
   if (ts.toDate) ts = ts.toDate();
   const d = ts instanceof Date ? ts : new Date(ts);
   return d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+}
+
+// ---------- theme toggle ----------
+function currentTheme() {
+  return document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark";
+}
+
+function themeIcon() {
+  return currentTheme() === "light" ? "☀️" : "🌙";
+}
+
+export function toggleTheme() {
+  const isLight = currentTheme() === "light";
+  if (isLight) {
+    document.documentElement.removeAttribute("data-theme");
+    localStorage.setItem("cs-theme", "dark");
+  } else {
+    document.documentElement.setAttribute("data-theme", "light");
+    localStorage.setItem("cs-theme", "light");
+  }
+  document.querySelectorAll(".theme-toggle").forEach((b) => { b.textContent = themeIcon(); });
 }
 
 export function esc(str) {
