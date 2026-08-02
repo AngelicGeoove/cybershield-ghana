@@ -40,7 +40,7 @@
     </div>
     <div id="manual-description" class="mb-3" {{ 'style="display: none;"' if data.get('use_guided') }}>
         <label for="description" class="form-label">Describe What Happened</label>
-        <textarea class="form-control" id="description" name="description" rows="8" required>{{ data.get("description", "") }}</textarea>
+        <textarea class="form-control" id="description" name="description" rows="8"{{ '' if data.get('use_guided') else ' required' }}>{{ data.get("description", "") }}</textarea>
         <div class="form-text">Be as detailed as possible. Include dates, platforms, usernames, URLs, phone numbers, what you did, what happened, and any evidence available.</div>
     </div>
     <button type="submit" class="btn btn-primary">Next: Additional Info</button>
@@ -51,14 +51,37 @@ document.addEventListener('DOMContentLoaded', function() {
     const guidedCheckbox = document.getElementById('use_guided');
     const guidedCard = document.getElementById('guided-questionnaire');
     const manualDescription = document.getElementById('manual-description');
-    
-    guidedCheckbox.addEventListener('change', function() {
-        if (this.checked) {
-            guidedCard.style.display = 'block';
-            manualDescription.style.display = 'none';
+    const descriptionField = document.getElementById('description');
+
+    function syncGuidedMode() {
+        const useGuided = guidedCheckbox.checked;
+        guidedCard.style.display = useGuided ? 'block' : 'none';
+        manualDescription.style.display = useGuided ? 'none' : 'block';
+        // The hidden manual textarea must not block submission with `required`.
+        if (useGuided) {
+            descriptionField.removeAttribute('required');
         } else {
-            guidedCard.style.display = 'none';
-            manualDescription.style.display = 'block';
+            descriptionField.setAttribute('required', 'required');
+        }
+    }
+
+    guidedCheckbox.addEventListener('change', syncGuidedMode);
+    // Apply the persisted state on page load (e.g. navigating back).
+    syncGuidedMode();
+
+    // If guided mode is on, require at least one guided answer before submitting.
+    document.querySelector('form').addEventListener('submit', function(e) {
+        if (guidedCheckbox.checked) {
+            const filled = ['guided_what', 'guided_when', 'guided_who', 'guided_platform',
+                'guided_asked_to_do', 'guided_happened_after']
+                .some(name => {
+                    const el = document.querySelector(`[name="${name}"]`);
+                    return el && el.value.trim();
+                });
+            if (!filled) {
+                e.preventDefault();
+                alert('Please answer at least one guided question, or switch off the guided questionnaire and describe the incident yourself.');
+            }
         }
     });
 });
