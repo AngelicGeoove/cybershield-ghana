@@ -73,6 +73,7 @@
             <div class="mb-3">
               <label for="regPassword" class="form-label">Password (min 8 characters)</label>
               <input type="password" class="form-control" id="regPassword" minlength="8" required>
+              <div id="pwnedCheck" class="small mt-1"></div>
             </div>
             <div class="mb-3">
               <label for="regPassword2" class="form-label">Confirm Password</label>
@@ -98,6 +99,44 @@
     import { auth, showFlash } from "./js/common.js";
     import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    // ---------- Pwned Passwords (Have I Been Pwned range API, no key) ----------
+    // Sends only the first 5 chars of the SHA-1 hash (k-anonymity), so the
+    // password itself never leaves the browser.
+    async function sha1Hex(str) {
+      const buf = new TextEncoder().encode(str);
+      const hash = await crypto.subtle.digest("SHA-1", buf);
+      return [...new Uint8Array(hash)].map(b => b.toString(16).padStart(2, "0")).join("");
+    }
+
+    let pwnedTimer = null;
+    async function checkPwned(pw) {
+      const out = document.getElementById("pwnedCheck");
+      if (!pw || pw.length < 8) { if (out) out.innerHTML = ""; return; }
+      if (out) out.innerHTML = '<span class="text-muted">Checking against known breaches…</span>';
+      try {
+        const hash = await sha1Hex(pw);
+        const prefix = hash.slice(0, 5).toUpperCase();
+        const suffix = hash.slice(5).toUpperCase();
+        const r = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`);
+        if (!r.ok) throw new Error("breach check unavailable");
+        const text = await r.text();
+        const found = text.split(/\r?\n/).some(line => line.split(":")[0] === suffix);
+        if (found) {
+          out.innerHTML = '<span class="text-danger">⚠️ This password appears in known data breaches — please choose a different one.</span>';
+        } else {
+          out.innerHTML = '<span class="text-success">✅ This password was not found in known breaches.</span>';
+        }
+      } catch (e) {
+        if (out) out.innerHTML = '<span class="text-muted">Breach check unavailable right now.</span>';
+      }
+    }
+
+    document.getElementById("regPassword").addEventListener("input", (e) => {
+      clearTimeout(pwnedTimer);
+      const v = e.target.value;
+      pwnedTimer = setTimeout(() => checkPwned(v), 700);
+    });
     import { db } from "./js/common.js";
 
     document.getElementById("registerForm").addEventListener("submit", async (e) => {

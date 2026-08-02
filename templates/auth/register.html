@@ -36,6 +36,7 @@
                 <div class="mb-3">
                     <label for="password" class="form-label">Password <span class="required-star">*</span> <small class="form-text">(min. 8 characters)</small></label>
                     <input type="password" class="form-control" id="password" name="password" required minlength="8">
+                    <div id="pwnedCheck" class="small mt-1"></div>
                 </div>
                 <div class="mb-3">
                     <label for="confirm_password" class="form-label">Confirm Password <span class="required-star">*</span></label>
@@ -48,4 +49,39 @@
         </div>
     </div>
 </div>
+
+<script>
+// Pwned Passwords (Have I Been Pwned range API) - free, no key.
+// Only the first 5 chars of the SHA-1 hash leave the browser (k-anonymity).
+async function sha1Hex(str) {
+    const buf = new TextEncoder().encode(str);
+    const hash = await crypto.subtle.digest('SHA-1', buf);
+    return [...new Uint8Array(hash)].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+let pwnedTimer = null;
+async function checkPwned(pw) {
+    const out = document.getElementById('pwnedCheck');
+    if (!pw || pw.length < 8) { if (out) out.innerHTML = ''; return; }
+    if (out) out.innerHTML = '<span class="text-muted">Checking against known breaches…</span>';
+    try {
+        const hash = await sha1Hex(pw);
+        const prefix = hash.slice(0, 5).toUpperCase();
+        const suffix = hash.slice(5).toUpperCase();
+        const r = await fetch('https://api.pwnedpasswords.com/range/' + prefix);
+        if (!r.ok) throw new Error('unavailable');
+        const text = await r.text();
+        const found = text.split(/\r?\n/).some(line => line.split(':')[0] === suffix);
+        out.innerHTML = found
+            ? '<span class="text-danger">⚠️ This password appears in known data breaches — please choose a different one.</span>'
+            : '<span class="text-success">✅ This password was not found in known breaches.</span>';
+    } catch (e) {
+        if (out) out.innerHTML = '<span class="text-muted">Breach check unavailable right now.</span>';
+    }
+}
+document.getElementById('password').addEventListener('input', function (e) {
+    clearTimeout(pwnedTimer);
+    var v = e.target.value;
+    pwnedTimer = setTimeout(function () { checkPwned(v); }, 700);
+});
+</script>
 {% endblock %}

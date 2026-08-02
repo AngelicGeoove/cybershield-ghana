@@ -21,9 +21,26 @@
   <div id="navbar"></div>
   <main class="container py-4">
     <h2 class="mb-1">🛡️ Stay Safe Online</h2>
-    <p class="text-muted mb-4">Practical tips from the Cyber Security Authority of Ghana to keep you protected.</p>
+    <p class="text-muted mb-4">Practical tips from the Cyber Security Authority of Ghana to keep you protected. Click any topic to learn more.</p>
     <div class="row" id="tips"></div>
   </main>
+
+  <!-- Topic detail modal -->
+  <div class="modal fade" id="topicModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="topicModalLabel"></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="topicModalBody"></div>
+        <div class="modal-footer">
+          <a href="report.html" class="btn btn-report">Report an Incident</a>
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
   <footer>
     <div class="container">
       <p class="mb-0"><a href="privacy.html">Privacy Policy</a> &middot; <a href="terms.html">Terms of Use</a></p>
@@ -31,33 +48,52 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/awareness-topics.js"></script>
   <script type="module">
     import { requireAuth, renderNav, esc } from "./js/common.js";
     requireAuth(() => renderNav("awareness.html"));
 
-    const TIPS = [
-      ["Use strong, unique passwords", "Use at least 12 characters with a mix of letters, numbers and symbols. Never reuse the same password across sites."],
-      ["Turn on two-factor authentication", "Enable 2FA on email, banking and mobile money apps. It blocks most account-takeover attempts."],
-      ["Beware of unsolicited links", "Never click links in unexpected SMS or WhatsApp messages, even if they look like they come from your bank or network."],
-      ["Never share your PIN or OTP", "No legitimate organisation - including the CSA, banks, or telecoms - will ever ask for your PIN or one-time password."],
-      ["Verify before you pay", "For online shopping, use trusted platforms and verify seller reviews before making payments."],
-      ["Update your devices", "Keep phones and computers updated. Updates patch security holes that criminals exploit."],
-      ["Watch for urgency and fear tactics", "Scammers create panic ('your account will be blocked!') to rush you. Stop, verify, and never act under pressure."],
-      ["Protect your social media", "Use private accounts, approve friend requests carefully, and avoid sharing your location or daily routines publicly."],
-      ["Beware of fake investment offers", "If a 'business opportunity' promises unrealistically high returns, it is almost certainly a scam."],
-      ["Secure your Wi-Fi", "Use WPA2/WPA3 encryption and a strong router password. Do not use public Wi-Fi for banking."],
-      ["Sextortion awareness", "Never share intimate images. If someone threatens to leak them, do not pay - report it to the CSA immediately."],
-      ["Report promptly", "The sooner you report, the better the chance of recovering money or stopping further harm."]
-    ];
+    const topics = Object.entries(window.AWARENESS_TOPICS || {});
 
-    document.getElementById("tips").innerHTML = TIPS.map(([t, d]) => `
+    document.getElementById("tips").innerHTML = topics.map(([key, t]) => `
       <div class="col-md-6 col-lg-4 mb-4">
-        <div class="feature-card p-4">
-          <div class="feature-icon">🛡️</div>
-          <h5>${esc(t)}</h5>
-          <p class="text-muted small mb-0">${esc(d)}</p>
+        <div class="feature-card p-4 topic-card" style="cursor:pointer" onclick="openTopic('${esc(key)}')">
+          <div class="feature-icon">${t.icon || '🛡️'}</div>
+          <h5>${esc(t.title)}</h5>
+          <p class="text-muted small mb-0">${esc((t.what || "").slice(0, 120))}...</p>
+          <span class="small text-primary mt-2 d-inline-block">Learn more →</span>
         </div>
       </div>`).join("");
+
+    window.openTopic = (key) => {
+      const t = (window.AWARENESS_TOPICS || {})[key];
+      if (!t) return;
+      const li = (items) => (items || []).map(i => `<li>${esc(i)}</li>`).join("");
+      document.getElementById("topicModalLabel").innerHTML = `${t.icon || '🛡️'} ${esc(t.title)}`;
+      document.getElementById("topicModalBody").innerHTML = `
+        <div class="card p-3 mb-3">
+          <h5>What is it?</h5>
+          <p class="mb-0">${esc(t.what || "")}</p>
+        </div>
+        <div class="card p-3 mb-3">
+          <h5>⚠️ Warning Signs</h5>
+          <ul class="mb-0">${li(t.warning_signs)}</ul>
+        </div>
+        <div class="card p-3 mb-3">
+          <h5>✅ What to do</h5>
+          <ul class="mb-0">${li(t.what_to_do)}</ul>
+        </div>
+        <div class="card p-3 mb-3">
+          <h5>🚫 What NOT to do</h5>
+          <ul class="mb-0">${li(t.what_not_to_do)}</ul>
+        </div>
+        <div class="card p-3">
+          <h5>📢 How to Report</h5>
+          <p class="mb-0">${esc(t.how_to_report || "")}</p>
+        </div>`;
+      const modal = new bootstrap.Modal(document.getElementById("topicModal"));
+      modal.show();
+    };
   </script>
 </body>
 </html>

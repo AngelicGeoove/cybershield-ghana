@@ -15,6 +15,7 @@ import re
 import json
 import socket
 import ssl
+import hashlib
 import urllib.parse
 import urllib.request
 from datetime import datetime
@@ -24,6 +25,7 @@ URLHAUS_URL = 'https://urlhaus-api.abuse.ch/v1/url/'
 IPAPI_URL = 'http://ip-api.com/json/{ip}?fields=status,country,regionName,city,isp,org,as,query,lat,lon'
 SAFE_BROWSING_URL = 'https://safebrowsing.googleapis.com/v4/threatMatches:find'
 ABUSEIPDB_URL = 'https://api.abuseipdb.com/api/v2/check'
+PWNED_RANGE_URL = 'https://api.pwnedpasswords.com/range/{prefix}'
 
 # Fallback for PyInstaller builds / machines without a CA bundle:
 # try verified TLS first, then retry unverified so the feature still works.
@@ -221,6 +223,51 @@ def run_report_checks(data):
         findings.append({'type': 'ip', 'value': ip, 'results': results})
 
     return findings
+
+
+def _http_text(url, data=None, headers=None, method=None):
+    """Like _http_json but returns the raw text body (for plain-text APIs)."""
+    try:
+        req = urllib.request.Request(url, data=data, headers=headers or {}, method=method)
+        with urllib.request.urlopen(req, timeout=_TIMEOUT) as resp:
+            return resp.read().decode('utf-8', 'replace')
+    except ssl.SSLError:
+        try:
+            req = urllib.request.Request(url, data=data, headers=headers or {}, method=method)
+            with urllib.request.urlopen(req, timeout=_TIMEOUT, context=_UNVERIFIED_CTX) as resp:
+                return resp.read().decode('utf-8', 'replace')
+        except Exception:
+            return None
+    except Exception:
+        return None
+
+
+def check_password_pwned(password):
+    """Have I Been Pwned range API (k-anonymity): is this password breached?
+
+    Only the first 5 chars of the SHA-1 hash are sent to the API; the rest of
+    the hash is matched locally against the returned suffix list.
+    Returns {'status': 'breached'|'clean'|'unknown', 'count': int, 'source': 'HIBP Pwned Passwords'}.
+    """
+    if not password:
+        return None
+    try:
+        digest = hashlib.sha1(password.encode('utf-8')).hexdigest().upper()
+        prefix, suffix = digest[:5], digest[5:]
+        resp = _http_text(PWNED_RANGE_URL.format(prefix=prefix))
+        if resp is None:
+            return {'status': 'unknown', 'source': 'HIBP Pwned Passwords', 'count': 0}
+        count = 0
+        for line in resp.splitlines():
+            part = line.split(':', 1)
+            if part and part[0].strip().upper() == suffix:
+                count = int(part[1].strip()) if len(part) > 1 else 1
+                break
+        if count:
+            return {'status': 'breached', 'source': 'HIBP Pwned Passwords', 'count': count}
+        return {'status': 'clean', 'source': 'HIBP Pwned Passwords', 'count': 0}
+    except Exception:
+        return {'status': 'unknown', 'source': 'HIBP Pwned Passwords', 'count': 0}
 
 
 def overall_flag(findings):
