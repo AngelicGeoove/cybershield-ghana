@@ -97,9 +97,17 @@ service cloud.firestore {
       }
 
       // ----- submissions (channel attempts) -----
+      // Web reporters record which channel they chose for their own report
+      // (create only, limited fields, status always 'prepared'). Status
+      // changes and anything else happen in the desktop app (Admin SDK).
       match /submissions/{sid} {
         allow read: if isIncidentReader();
-        allow write: if false;
+        allow create: if isSignedIn()
+          && isIncidentReader()
+          && request.resource.data.keys().hasOnly(['channel', 'attempted_at', 'status'])
+          && request.resource.data.status == 'prepared'
+          && request.resource.data.channel is string;
+        allow update, delete: if false;
       }
 
       // ----- comments (investigator <-> reporter messages) -----
