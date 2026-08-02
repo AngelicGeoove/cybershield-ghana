@@ -27,6 +27,7 @@
     <div id="flash" class="alert d-none"></div>
 
     <div class="step-indicator" id="steps"></div>
+    <div id="draftIndicator" class="small text-muted text-center mb-2 d-none"></div>
 
     <div class="card p-4">
       <!-- STEP 1: Category -->
@@ -168,6 +169,84 @@
     let state = { category: "", description: "", metadata: {}, reporter: {}, channel: "CSA Online Form" };
     let currentUser = null;
 
+    // ---------- draft saving (localStorage, per user) ----------
+    const draftKey = () => `cs-report-draft-${currentUser.email.toLowerCase()}`;
+
+    function showDraftSaved() {
+      const el = document.getElementById("draftIndicator");
+      if (!el) return;
+      el.textContent = "💾 Draft saved locally — you can close this page and come back later.";
+      el.classList.remove("d-none");
+      clearTimeout(el._t);
+      el._t = setTimeout(() => el.classList.add("d-none"), 2500);
+    }
+
+    function saveDraft(step) {
+      try {
+        const guidedAnswers = {};
+        GUIDED.forEach(([id]) => { guidedAnswers[id] = document.getElementById(id).value; });
+        const draft = {
+          step,
+          category: state.category,
+          description: state.description,
+          metadata: state.metadata,
+          reporter: state.reporter,
+          channel: state.channel,
+          guidedEnabled: document.getElementById("guidedToggle").checked,
+          guidedAnswers,
+          savedAt: new Date().toISOString()
+        };
+        localStorage.setItem(draftKey(), JSON.stringify(draft));
+        showDraftSaved();
+      } catch (e) { /* storage unavailable - skip */ }
+    }
+
+    function loadDraft() {
+      try {
+        const raw = localStorage.getItem(draftKey());
+        if (!raw) return null;
+        const d = JSON.parse(raw);
+        if (!d || typeof d.step !== "number") return null;
+        return d;
+      } catch (e) { return null; }
+    }
+
+    function clearDraft() {
+      try { localStorage.removeItem(draftKey()); } catch (e) {}
+    }
+
+    function restoreDraft(d) {
+      state.category = d.category || "";
+      state.description = d.description || "";
+      state.metadata = d.metadata || {};
+      state.reporter = d.reporter || {};
+      state.channel = d.channel || "CSA Online Form";
+      document.getElementById("f_category").value = state.category;
+      document.getElementById("f_description").value = state.description;
+      const m = state.metadata;
+      document.getElementById("f_date").value = m.incident_date || "";
+      document.getElementById("f_time").value = m.incident_time || "";
+      document.getElementById("f_platform").value = m.platform || "";
+      document.getElementById("f_url").value = m.website_url || "";
+      document.getElementById("f_username").value = m.social_media_username || "";
+      document.getElementById("f_phone").value = m.phone_involved || "";
+      document.getElementById("f_email").value = m.email_involved || "";
+      document.getElementById("f_txn").value = m.transaction_ref || "";
+      document.getElementById("f_location").value = m.location || "";
+      const r = state.reporter;
+      document.getElementById("f_name").value = r.full_name || "";
+      document.getElementById("f_phone2").value = r.phone || "";
+      document.getElementById("f_loc2").value = r.location || "";
+      document.getElementById("f_org2").value = r.organisation || "";
+      document.getElementById("f_channel").value = state.channel;
+      document.getElementById("guidedToggle").checked = !!d.guidedEnabled;
+      document.getElementById("guidedPanel").classList.toggle("d-none", !d.guidedEnabled);
+      const answers = d.guidedAnswers || {};
+      GUIDED.forEach(([id]) => { const el = document.getElementById(id); if (el) el.value = answers[id] || ""; });
+      showFlash(`Draft restored — continuing from step ${Math.max(1, Math.min(d.step, 5))}.`, "info");
+      return Math.max(1, Math.min(d.step, 5));
+    }
+
     async function init(user) {
       currentUser = user;
       document.getElementById("f_category").innerHTML = CATEGORIES.map(c => `<option>${esc(c)}</option>`).join("");
@@ -189,7 +268,8 @@
           document.getElementById("f_org2").value = d.organisation || "";
         }
       } catch (e) { /* profile may not exist yet */ }
-      renderSteps(1);
+      const draft = loadDraft();
+      renderSteps(draft ? restoreDraft(draft) : 1);
     }
 
     function renderSteps(n) {
@@ -207,7 +287,7 @@
       for (let i = 1; i <= 5; i++) document.getElementById("step" + i).classList.toggle("d-none", i !== n);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
-    window.go = (n) => { capture(n); renderSteps(n); };
+    window.go = (n) => { capture(n); saveDraft(n); renderSteps(n); };
 
     function capture(next) {
       if (next >= 2) state.category = document.getElementById("f_category").value;
@@ -312,6 +392,7 @@
           attempted_at: now,
           status: "prepared"
         });
+        clearDraft();
         window.location.href = `reports.html?id=${encodeURIComponent(incidentId)}&submitted=1`;
       } catch (err) {
         showFlash(err.message || "Submission failed. Please try again.", "error");

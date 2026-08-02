@@ -217,7 +217,14 @@
         `Hello,\n\nPlease find attached evidence for CyberShield Ghana report ${id}.\n\n` +
         `Report ID: ${id}\nCategory: ${category}\n\nThank you.`
       );
-      window.location.href = `mailto:k.asamoah-agyeibi@stu.ucc.edu.gh?subject=${subject}&body=${body}`;
+      // Open in a NEW tab so closing the mail window never closes CyberShield.
+      const a = document.createElement("a");
+      a.href = `mailto:k.asamoah-agyeibi@stu.ucc.edu.gh?subject=${subject}&body=${body}`;
+      a.target = "_blank";
+      a.rel = "noopener";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
     };
 
     window.copyId = (id, btn) => {
