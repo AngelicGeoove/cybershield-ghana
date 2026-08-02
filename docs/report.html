@@ -80,7 +80,11 @@
         </div>
         <div class="row">
           <div class="col-md-6 mb-3"><label class="form-label">Platform / service</label><input class="form-control" id="f_platform" placeholder="e.g. MTN MoMo, Facebook, Gmail"></div>
-          <div class="col-md-6 mb-3"><label class="form-label">Website / app URL</label><input class="form-control" id="f_url" placeholder="https://..."></div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Website / app URL</label>
+            <input class="form-control" id="f_url" placeholder="https://...">
+            <div id="urlCheck" class="small mt-1"></div>
+          </div>
         </div>
         <div class="row">
           <div class="col-md-6 mb-3"><label class="form-label">Account / username involved</label><input class="form-control" id="f_username"></div>
@@ -350,6 +354,68 @@
         feedback.classList.remove("d-none");
       }
     };
+
+    // ---------- client-side URL/domain checks (free, no key) ----------
+    // DNS-over-HTTPS: does the domain resolve / have mail records?
+    // RDAP: how old is the domain? (brand-new domains are a phishing signal)
+    async function dohLookup(name, type) {
+      const r = await fetch(`https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(name)}&type=${type}`, {
+        headers: { "accept": "application/dns-json" }
+      });
+      if (!r.ok) throw new Error("dns failed");
+      const j = await r.json();
+      return (j.Answer || []).length > 0;
+    }
+
+    async function rdapDomainAge(domain) {
+      const r = await fetch(`https://rdap.org/domain/${encodeURIComponent(domain)}`);
+      if (!r.ok) return null;
+      const j = await r.json();
+      const events = j.events || [];
+      const reg = events.find(e => e.eventAction === "registration");
+      if (reg && reg.eventDate) {
+        const ageDays = (Date.now() - new Date(reg.eventDate).getTime()) / 86400000;
+        return { ageDays, domain };
+      }
+      return null;
+    }
+
+    function extractDomain(url) {
+      try {
+        const u = new URL(url.includes("://") ? url : "http://" + url);
+        return u.hostname;
+      } catch (e) { return null; }
+    }
+
+    let urlCheckTimer = null;
+    window.checkUrlClient = async (url) => {
+      const out = document.getElementById("urlCheck");
+      if (!url) { if (out) out.innerHTML = ""; return; }
+      const domain = extractDomain(url);
+      if (!domain) { if (out) out.innerHTML = '<span class="text-muted">Could not read that URL.</span>'; return; }
+      if (out) out.innerHTML = '<span class="text-muted">Checking domain…</span>';
+      const parts = [];
+      try {
+        const [hasA, hasMx] = await Promise.all([dohLookup(domain, "A"), dohLookup(domain, "MX")]);
+        if (!hasA) parts.push('<span class="text-danger">⚠️ Domain does not appear to resolve</span>');
+        else if (!hasMx) parts.push('<span class="text-warning">⚠️ Domain has no email (MX) records — unusual for a real service</span>');
+      } catch (e) { parts.push('<span class="text-muted">DNS check unavailable</span>'); }
+      try {
+        const info = await rdapDomainAge(domain);
+        if (info && info.ageDays < 30) parts.push(`<span class="text-warning">⚠️ Domain registered only ${Math.max(1, Math.round(info.ageDays))} day(s) ago — common for scams</span>`);
+        else if (info) parts.push(`<span class="text-muted">Domain age: ~${Math.round(info.ageDays / 30)} mo</span>`);
+      } catch (e) { /* rdap unavailable */ }
+      if (out) out.innerHTML = parts.join("<br>") || '<span class="text-muted">No obvious red flags.</span>';
+    };
+
+    // debounce the check as the user types
+    document.addEventListener("input", (e) => {
+      if (e.target && e.target.id === "f_url") {
+        clearTimeout(urlCheckTimer);
+        const v = e.target.value.trim();
+        urlCheckTimer = setTimeout(() => checkUrlClient(v), 700);
+      }
+    });
 
     function renderReview() {
       const meta = Object.entries(state.metadata).filter(([, v]) => v);

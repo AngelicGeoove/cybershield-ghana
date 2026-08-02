@@ -149,6 +149,16 @@ def review():
     data = get_or_init_draft()
     return render_template('report/step_review.html', data=data, step=6)
 
+@report_bp.route('/report/security-check', methods=['GET'])
+@login_required
+def security_check():
+    """Run free threat-intel checks on the URLs/IPs in the draft report."""
+    from services import threat_intel
+    data = get_or_init_draft()
+    findings = threat_intel.run_report_checks(data)
+    flag = threat_intel.overall_flag(findings)
+    return jsonify({'flag': flag, 'findings': findings})
+
 @report_bp.route('/report/confirmation', methods=['GET'])
 @login_required
 def confirmation():

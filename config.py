@@ -47,3 +47,7 @@ class Config:
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'txt', 'csv', 'zip'}
     # Firebase Web API key - public by design (used for the Auth REST endpoint)
     FIREBASE_WEB_API_KEY = os.environ.get('FIREBASE_WEB_API_KEY', 'AIzaSyBefRp77pRx93GvbhUQ9AZ0a4oX9hlZ7Tc')
+    # Optional free threat-intel keys (empty = keyless checks only)
+    GOOGLE_SAFE_BROWSING_KEY = os.environ.get('GOOGLE_SAFE_BROWSING_KEY', '')
+    ABUSEIPDB_KEY = os.environ.get('ABUSEIPDB_KEY', '')
+    URLHAUS_KEY = os.environ.get('URLHAUS_KEY', '')

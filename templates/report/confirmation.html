@@ -43,6 +43,15 @@
             {% endif %}
 
             <hr>
+            <div class="text-start mb-3">
+                <h5>🏛️ Also report to official channels</h5>
+                <p class="text-muted small mb-2">For the fastest official response you can also report this incident directly to the national authorities. Your CyberShield report stays with us either way.</p>
+                <ul class="mb-0 small">
+                    <li><a href="https://report.csa.gov.gh" target="_blank" rel="noopener">Ghana Cyber Security Authority — report.csa.gov.gh</a></li>
+                    <li><a href="https://police.gov.gh" target="_blank" rel="noopener">Ghana Police Service (CID Cybercrime Unit)</a></li>
+                    <li><a href="https://www.ic3.gov" target="_blank" rel="noopener">IC3 / FBI — for cross-border scams</a></li>
+                </ul>
+            </div>
             <a href="{{ url_for('cyberlog.index') }}" class="btn btn-primary me-2">View Cyber Log</a>
             <a href="{{ url_for('report.start_report') }}" class="btn btn-outline-light">Report Another Incident</a>
         </div>
