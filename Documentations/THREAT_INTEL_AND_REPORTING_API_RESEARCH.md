@@ -244,6 +244,7 @@ Your app has two runtimes (Flask EXE with Firebase Admin SDK; static GitHub Page
 | 6 | **SSL fallback** — unverified TLS retry so PyInstaller EXEs without a CA bundle still work | `threat_intel._http_json` | ✅ Done & verified |
 | 7 | **Client-side URL checks in the web wizard** (step 3) — DNS-over-HTTPS (domain resolves? MX exists?) + RDAP (domain age < 30 days = scam signal), debounced as you type | `docs/report.html` | ✅ Done, no keys needed |
 | 8 | **"Also report to official channels" card** — CSA portal, Ghana Police CID, IC3 links | web detail view (`docs/reports.html`) + desktop confirmation page (`templates/report/confirmation.html`) | ✅ Done |
+| 9 | **Pwned Passwords (HIBP range API, no key)** — live "has this password been breached?" check under the password field on registration | web (`docs/register.html`) + desktop (`templates/auth/register.html`) + server helper `threat_intel.check_password_pwned()` | ✅ Done & verified |
 
 **To enable the optional desktop checks**, set these env vars before starting the app (all free):
 ```
