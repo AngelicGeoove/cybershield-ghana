@@ -113,25 +113,9 @@
         </div>
       </div>
 
-      <!-- STEP 5: Evidence note -->
+      <!-- STEP 5: Review + channel + submit -->
       <div class="step-panel d-none" id="step5">
-        <h5>Step 5: Evidence</h5>
-        <div class="alert alert-info">
-          <strong>Secure file upload is available in the desktop application only.</strong><br>
-          If you have screenshots, transaction receipts or other files, please send them to
-          <strong>report@csa.gov.gh</strong> or via the official CSA channels after submitting,
-          quoting your report reference. An investigator may also request evidence and will tell
-          you how to provide it securely.
-        </div>
-        <div class="d-flex justify-content-between">
-          <button class="btn btn-outline-light" onclick="go(4)">← Previous</button>
-          <button class="btn btn-primary" onclick="go(6)">Continue →</button>
-        </div>
-      </div>
-
-      <!-- STEP 6: Review + channel + submit -->
-      <div class="step-panel d-none" id="step6">
-        <h5>Step 6: Review and submit</h5>
+        <h5>Step 5: Review and submit</h5>
         <div id="reviewBox" class="card p-3 mb-3" style="background:var(--bg-elevated)"></div>
         <div class="mb-3">
           <label class="form-label">How would you like to submit this report?</label>
@@ -142,7 +126,7 @@
           </select>
         </div>
         <div class="d-flex justify-content-between">
-          <button class="btn btn-outline-light" onclick="go(5)">← Previous</button>
+          <button class="btn btn-outline-light" onclick="go(4)">← Previous</button>
           <button class="btn btn-primary" id="submitBtn" onclick="submitReport()">Submit Report</button>
         </div>
       </div>
@@ -209,18 +193,18 @@
     }
 
     function renderSteps(n) {
-      const labels = ["Category", "Description", "Incident details", "Your details", "Evidence", "Review"];
+      const labels = ["Category", "Description", "Incident details", "Your details", "Review"];
       let html = "";
-      for (let i = 1; i <= 6; i++) {
+      for (let i = 1; i <= 5; i++) {
         const cls = i === n ? "active" : i < n ? "done" : "";
         html += `<div class="text-center">
             <div class="step-circle ${cls}">${i < n ? "✓" : i}</div>
             <div class="step-label">Step ${i}</div>
           </div>`;
-        if (i < 6) html += `<div class="step-line ${i < n ? "done" : ""}"></div>`;
+        if (i < 5) html += `<div class="step-line ${i < n ? "done" : ""}"></div>`;
       }
       document.getElementById("steps").innerHTML = html;
-      for (let i = 1; i <= 6; i++) document.getElementById("step" + i).classList.toggle("d-none", i !== n);
+      for (let i = 1; i <= 5; i++) document.getElementById("step" + i).classList.toggle("d-none", i !== n);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
     window.go = (n) => { capture(n); renderSteps(n); };
@@ -257,8 +241,8 @@
           organisation: document.getElementById("f_org2").value
         };
       }
-      if (next === 6) state.channel = document.getElementById("f_channel").value;
-      if (next === 6) renderReview();
+      if (next === 5) state.channel = document.getElementById("f_channel").value;
+      if (next === 5) renderReview();
     }
 
     function composeGuided() {

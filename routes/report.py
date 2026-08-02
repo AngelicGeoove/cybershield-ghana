@@ -1,10 +1,8 @@
-import uuid
 import json
 import os
 import sys
-import hashlib
 from datetime import datetime, date
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session, send_file, abort
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session
 from flask_login import login_required, current_user
 from services import firebase_service as fb
 from config import Config
@@ -58,6 +56,10 @@ def start_report():
 @report_bp.route('/report/step/<int:step>', methods=['GET', 'POST'])
 @login_required
 def report_step(step):
+    # The wizard now has 5 steps; clamp anything out of range.
+    if step < 1 or step > 5:
+        return redirect(url_for('report.report_step', step=min(max(step, 1), 5)))
+
     data = get_or_init_draft()
     categories = json.loads(os.environ.get('CSA_CATEGORIES', json.dumps(CATEGORY_LIST)))
 
@@ -112,8 +114,6 @@ def report_step(step):
                 'device': request.form.get('device', '')
             }
         elif step == 5:
-            pass
-        elif step == 6:
             data['channel'] = request.form.get('channel', '')
             data['reviewed'] = True
             save_draft(data)
@@ -121,7 +121,7 @@ def report_step(step):
 
         save_draft(data)
         flash(f'Step {step} saved.', 'success')
-        if step < 6:
+        if step < 5:
             return redirect(url_for('report.report_step', step=step + 1))
         return redirect(url_for('report.confirmation'))
 
@@ -242,81 +242,6 @@ def submit_report():
     })
 
     return redirect(url_for('report.confirmation', incident_id=incident.incident_id))
-
-@report_bp.route('/report/upload-evidence', methods=['POST'])
-@login_required
-def upload_evidence():
-    data = get_or_init_draft()
-    files = request.files.getlist('files')
-    allowed = Config.ALLOWED_EXTENSIONS
-
-    for f in files:
-        if not f.filename:
-            continue
-        parts = f.filename.rsplit('.', 1)
-        ext = parts[-1].lower() if len(parts) > 1 else ''
-        if ext not in allowed:
-            flash(f'File type not allowed: {f.filename}', 'error')
-            continue
-        fname = f.filename
-        f.seek(0, os.SEEK_END)
-        fsize = f.tell()
-        f.seek(0)
-        if fsize > 10 * 1024 * 1024:
-            flash(f'File too large: {fname}', 'error')
-            continue
-        safe_name = str(uuid.uuid4()) + '_' + fname
-        save_path = os.path.join(Config.UPLOAD_FOLDER, safe_name)
-        f.save(save_path)
-        with open(save_path, 'rb') as fh:
-            file_hash = hashlib.sha256(fh.read()).hexdigest()
-        # Files stay local for now; metadata is persisted to Firestore at submit time.
-        meta = {
-            'name': fname, 'type': ext, 'size': fsize,
-            'path': save_path, 'hash': file_hash, 'id': uuid.uuid4().hex
-        }
-        ev_list = data.get('evidence_files', [])
-        ev_list.append((fname, meta))
-
-    save_draft(data)
-    flash('Evidence uploaded.', 'success')
-    return redirect(url_for('report.report_step', step=5))
-
-@report_bp.route('/report/remove-evidence/<evidence_id>', methods=['POST'])
-@login_required
-def remove_evidence(evidence_id):
-    data = get_or_init_draft()
-    removed = False
-    for fname, meta in data.get('evidence_files', []):
-        if meta.get('id') == evidence_id and meta.get('path') and os.path.exists(meta['path']):
-            try:
-                os.remove(meta['path'])
-            except OSError:
-                pass
-            removed = True
-            break
-    if removed:
-        data['evidence_files'] = [
-            (fn, m) for fn, m in data.get('evidence_files', [])
-            if m.get('id') != evidence_id
-        ]
-        save_draft(data)
-        flash('Evidence removed.', 'info')
-    else:
-        flash('Evidence not found in this draft.', 'error')
-    return redirect(url_for('report.report_step', step=5))
-
-@report_bp.route('/report/evidence/<evidence_id>')
-@login_required
-def evidence_preview(evidence_id):
-    """Serve an evidence file during the wizard, only if it is in the current session's draft."""
-    data = get_or_init_draft()
-    for _, meta in data.get('evidence_files', []):
-        if meta.get('id') == evidence_id:
-            if meta.get('path') and os.path.exists(meta['path']):
-                return send_file(meta['path'], as_attachment=False)
-            abort(404)
-    abort(404)
 
 @report_bp.route('/report/guided-description', methods=['POST'])
 @login_required

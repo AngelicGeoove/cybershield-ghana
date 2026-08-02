@@ -1,50 +1,82 @@
 {% extends "report/wizard.html" %}
 {% block report_content %}
 <div class="mb-4">
-    <h2>Step 5: Upload Supporting Evidence</h2>
-    <p class="text-muted">Attach screenshots, documents, or other evidence to support your report.</p>
+    <h2>Step 5: Choose Reporting Channel</h2>
+    <p class="text-muted">Select how you would like to submit your report to the Cyber Security Authority (CSA).</p>
 </div>
-<div class="alert alert-warning small">
-    <strong>Warning:</strong> Do not upload passwords, PINs, authentication codes, banking credentials, or other secrets. Do not upload unnecessary personal information belonging to other people.
-</div>
-<div class="card p-3 mb-3" style="background-color: var(--bg-light);">
-    <h6>Uploaded Files</h6>
-    {% if data.evidence_files %}
-    <div class="row g-2">
-        {% for fname, fmeta in data.evidence_files %}
-        <div class="col-md-6">
-            <div class="d-flex align-items-center gap-3 p-2" style="background-color: var(--bg-input); border-radius: 8px;">
-                {% if fmeta.get("type", "") in ['jpg', 'jpeg', 'png', 'gif'] %}
-                <img src="{{ url_for('report.evidence_preview', evidence_id=fmeta.get('id', 0)) }}"
-                     alt="{{ fmeta.get('name', fname) }}" style="width: 64px; height: 64px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-strong);">
-                {% else %}
-                <div class="d-flex align-items-center justify-content-center" style="width: 64px; height: 64px; background-color: var(--bg-elevated); border-radius: 6px; border: 1px solid var(--border-strong); font-size: 1.5rem;">📄</div>
-                {% endif %}
-                <div class="flex-grow-1" style="min-width: 0;">
-                    <div class="small text-truncate">{{ fmeta.get("name", fname) }}</div>
-                    <div class="text-muted small">{{ "%.1f" | format(fmeta.get("size", 0) / 1024) }} KB · {{ fmeta.get("type", "") }}</div>
-                    <form method="POST" action="{{ url_for('report.remove_evidence', evidence_id=fmeta.get('id', 0)) }}" class="d-inline">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                        <button type="submit" class="btn btn-sm btn-outline-danger mt-1 py-0">Remove</button>
-                    </form>
+<form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 {{ 'border-primary' if data.channel == 'csa-online-form' }} choose-channel" style="cursor: pointer;" data-channel="csa-online-form">
+                <div class="card-body text-center p-4">
+                    <div class="display-6 mb-2">&#x1F310;</div>
+                    <h5>CSA Online Form</h5>
+                    <p class="text-muted small">Submit through the official CSA Incident Reporting Form.</p>
+                </div>
+                <div class="card-footer text-center p-2">
+                    <input class="form-check-input" type="radio" name="channel" value="csa-online-form" id="ch_form" {{ "checked" if data.channel == "csa-online-form" }}>
+                    <label class="form-check-label" for="ch_form">Select</label>
                 </div>
             </div>
         </div>
-        {% endfor %}
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 {{ 'border-primary' if data.channel == 'email' }} choose-channel" style="cursor: pointer;" data-channel="email">
+                <div class="card-body text-center p-4">
+                    <div class="display-6 mb-2">&#x2709;&#xFE0F;</div>
+                    <h5>Email</h5>
+                    <p class="text-muted small">Prepare an email for the official CSA reporting address.</p>
+                </div>
+                <div class="card-footer text-center p-2">
+                    <input class="form-check-input" type="radio" name="channel" value="email" id="ch_email" {{ "checked" if data.channel == "email" }}>
+                    <label class="form-check-label" for="ch_email">Select</label>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 {{ 'border-primary' if data.channel == 'whatsapp' }} choose-channel" style="cursor: pointer;" data-channel="whatsapp">
+                <div class="card-body text-center p-4">
+                    <div class="display-6 mb-2">&#x1F4AC;</div>
+                    <h5>WhatsApp</h5>
+                    <p class="text-muted small">Prepare a message for the official CSA WhatsApp channel.</p>
+                </div>
+                <div class="card-footer text-center p-2">
+                    <input class="form-check-input" type="radio" name="channel" value="whatsapp" id="ch_wa" {{ "checked" if data.channel == "whatsapp" }}>
+                    <label class="form-check-label" for="ch_wa">Select</label>
+                </div>
+            </div>
+        </div>
     </div>
-    {% else %}
-    <p class="text-muted mb-0">No evidence files uploaded yet.</p>
-    {% endif %}
-</div>
-<form method="POST" action="{{ url_for('report.upload_evidence') }}" enctype="multipart/form-data">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-    <div class="mb-3">
-        <label for="files" class="form-label">Choose files to upload (max 10MB each)</label>
-        <input type="file" class="form-control" id="files" name="files" multiple accept=".png,.jpg,.jpeg,.gif,.pdf,.doc,.docx,.txt,.csv,.zip">
-        <div class="form-text">Allowed: PNG, JPG, JPEG, GIF, PDF, DOC, DOCX, TXT, CSV, ZIP. Max 10MB per file.</div>
+    <div class="alert alert-info small">
+        <strong>The official CSA reporting contact:</strong> report@csa.gov.gh | WhatsApp: 050 160 3111<br>
+        These contact details are configurable and last verified by the administrator.
     </div>
-    <button type="submit" class="btn btn-primary">Upload Evidence</button>
+    <div class="d-flex gap-3">
+        <button type="submit" class="btn btn-report flex-fill">Next: Review Report</button>
+    </div>
 </form>
-<br>
-<a href="{{ url_for('report.report_step', step=6) }}" class="btn btn-primary">Next: Review & Channel Selection</a>
+{% endblock %}
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.choose-channel').forEach(function(card) {
+        card.addEventListener('click', function(e) {
+            // Don't trigger if clicking on the radio/label directly (they handle themselves)
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'LABEL') {
+                return;
+            }
+            var channelValue = this.getAttribute('data-channel');
+            var radio = document.querySelector('input[name="channel"][value="' + channelValue + '"]');
+            if (radio) {
+                radio.checked = true;
+                // Update visual selection
+                document.querySelectorAll('.choose-channel').forEach(function(c) {
+                    c.classList.remove('border-primary');
+                });
+                this.classList.add('border-primary');
+            }
+        });
+    });
+});
+</script>
 {% endblock %}

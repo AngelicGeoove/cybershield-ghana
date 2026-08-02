@@ -27,6 +27,21 @@
             <p>Your cyber incident report has been prepared. Complete the submission through the official CSA channel.</p>
             <p class="text-muted">Use the Report ID to track your submission.</p>
             {% endif %}
+
+            {% if incident_id %}
+            <hr>
+            <div class="text-start">
+                <h5>📎 Attach Evidence</h5>
+                <p class="text-muted small">You can now attach screenshots, receipts or other evidence to support your
+                report. Click the button below — your email app will open with a message pre-filled with your
+                report ID. Attach your files to the email and send it, and they will be stored securely with your report.</p>
+                <a class="btn btn-report w-100"
+                   href="mailto:k.asamoah-agyeibi@stu.ucc.edu.gh?subject={{ ('CyberShield Ghana Evidence - ' ~ incident_id)|urlencode }}&body={{ ('Hello,\n\nPlease find attached evidence for CyberShield Ghana report ' ~ incident_id ~ '.\n\nReport ID: ' ~ incident_id ~ '\nCategory: ' ~ category)|urlencode }}">
+                    📎 Attach Evidence via Email
+                </a>
+            </div>
+            {% endif %}
+
             <hr>
             <a href="{{ url_for('cyberlog.index') }}" class="btn btn-primary me-2">View Cyber Log</a>
             <a href="{{ url_for('report.start_report') }}" class="btn btn-outline-light">Report Another Incident</a>

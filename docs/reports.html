@@ -196,11 +196,29 @@
             ${thread}
           </div>
         </div>
+        <div class="card p-4 mb-3">
+          <h5>📎 Attach Evidence</h5>
+          <p class="text-muted small mb-2">You can attach screenshots, receipts or other evidence to support your
+          report. Click the button below — your email app will open with a message pre-filled with your
+          report ID. Attach your files to the email and send it, and they will be stored securely with your report.</p>
+          <button type="button" class="btn btn-report" onclick="attachEvidence('${esc(inc.id)}', '${esc(inc.category || "")}')">
+            📎 Attach Evidence via Email
+          </button>
+        </div>
         <div class="card p-4 small">
-          <span class="text-muted">Need to attach evidence or files?</span> Send them to
-          <strong>report@csa.gov.gh</strong> or via official CSA channels quoting your reference.
+          <span class="text-muted">An investigator may also request evidence directly. If they do, you can
+          attach it the same way above, quoting your report reference.</span>
         </div>`;
     }
+
+    window.attachEvidence = (id, category) => {
+      const subject = encodeURIComponent(`CyberShield Ghana Evidence - ${id}`);
+      const body = encodeURIComponent(
+        `Hello,\n\nPlease find attached evidence for CyberShield Ghana report ${id}.\n\n` +
+        `Report ID: ${id}\nCategory: ${category}\n\nThank you.`
+      );
+      window.location.href = `mailto:k.asamoah-agyeibi@stu.ucc.edu.gh?subject=${subject}&body=${body}`;
+    };
 
     window.copyId = (id, btn) => {
       navigator.clipboard.writeText(id).then(() => {
