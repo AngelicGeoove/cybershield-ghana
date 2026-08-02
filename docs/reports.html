@@ -58,7 +58,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script type="module">
     import { auth, db, requireAuth, renderNav, showFlash, fmtDay, statusLabel, statusBadge, esc } from "./js/common.js";
-    import { collection, query, where, orderBy, onSnapshot, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { doc, collection, query, where, orderBy, onSnapshot, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     let allIncidents = [];
     let searchTerm = "";
