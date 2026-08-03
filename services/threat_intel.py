@@ -16,9 +16,86 @@ import json
 import socket
 import ssl
 import hashlib
+import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import datetime
+import requests
+import certifi
+import logging
+import time
+import config
+
+logger = logging.getLogger(__name__)
+
+# Simple file-backed cache and rate limiter for URLhaus calls. The cache
+# stores previous lookups to avoid repeated remote queries; the requests log
+# implements a sliding-window per-minute limit persisted to the same file so
+# restarts respect recent activity.
+CACHE_FILENAME = 'urlhaus_cache.json'
+CACHE_TTL_CLEAN = 24 * 3600
+CACHE_TTL_MALICIOUS = 7 * 24 * 3600
+CACHE_TTL_UNKNOWN = 3600
+RATE_LIMIT_PER_MINUTE = 60
+
+
+def _cache_path():
+    return os.path.join(config.get_base_dir(), CACHE_FILENAME)
+
+
+def _load_cache():
+    path = _cache_path()
+    try:
+        with open(path, 'r', encoding='utf-8') as fh:
+            return json.load(fh)
+    except Exception:
+        return {'entries': {}, 'requests': []}
+
+
+def _save_cache(cache):
+    path = _cache_path()
+    try:
+        with open(path, 'w', encoding='utf-8') as fh:
+            json.dump(cache, fh)
+    except Exception:
+        logger.exception('Failed saving URLhaus cache')
+
+
+def _get_cached(key):
+    cache = _load_cache()
+    e = cache.get('entries', {}).get(key)
+    if not e:
+        return None
+    if time.time() > e.get('ts', 0) + e.get('ttl', CACHE_TTL_UNKNOWN):
+        # expired
+        try:
+            del cache['entries'][key]
+            _save_cache(cache)
+        except Exception:
+            pass
+        return None
+    return e.get('value')
+
+
+def _set_cached(key, value, ttl=CACHE_TTL_CLEAN):
+    cache = _load_cache()
+    cache.setdefault('entries', {})[key] = {'ts': time.time(), 'ttl': ttl, 'value': value}
+    _save_cache(cache)
+
+
+def _rate_limit_allows():
+    cache = _load_cache()
+    reqs = cache.setdefault('requests', [])
+    now = time.time()
+    # prune older than 60s
+    cutoff = now - 60
+    reqs = [t for t in reqs if t >= cutoff]
+    if len(reqs) >= RATE_LIMIT_PER_MINUTE:
+        return False
+    reqs.append(now)
+    cache['requests'] = reqs
+    _save_cache(cache)
+    return True
 
 URLHAUS_URL = 'https://urlhaus-api.abuse.ch/v1/url/'
 # ip-api free tier is HTTP-only (HTTPS requires a paid plan)
@@ -38,13 +115,24 @@ _DOMAIN_RE = re.compile(r'\b(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}
 _TIMEOUT = 8
 
 
+def _is_ssl_failure(err):
+    """True if an exception is an SSL cert failure, incl. URLError-wrapped ones."""
+    if isinstance(err, ssl.SSLError):
+        return True
+    if isinstance(err, urllib.error.URLError):
+        return _is_ssl_failure(err.reason)
+    return False
+
+
 def _http_json(url, data=None, headers=None, method=None):
     """Small urllib wrapper returning parsed JSON or None on any failure."""
     try:
         req = urllib.request.Request(url, data=data, headers=headers or {}, method=method)
         with urllib.request.urlopen(req, timeout=_TIMEOUT) as resp:
             return json.loads(resp.read().decode('utf-8', 'replace'))
-    except ssl.SSLError:
+    except Exception as e:
+        if not _is_ssl_failure(e):
+            return None
         # Retry with unverified TLS (needed on PyInstaller EXEs without CA store)
         try:
             req = urllib.request.Request(url, data=data, headers=headers or {}, method=method)
@@ -52,8 +140,6 @@ def _http_json(url, data=None, headers=None, method=None):
                 return json.loads(resp.read().decode('utf-8', 'replace'))
         except Exception:
             return None
-    except Exception:
-        return None
 
 
 def _post_form(url, fields, auth=None):
@@ -97,30 +183,88 @@ def extract_ips(text):
 
 
 def check_url_urlhaus(url):
-    """URLhaus lookup (needs URLHAUS_KEY - free auth key from abuse.ch)."""
+    """URLhaus lookup (needs URLHAUS_KEY - free auth key from abuse.ch).
+
+    Use `requests` + `certifi` for a reliable TLS stack; fall back to
+    an unverified request if a cert validation error occurs.
+    """
     key = os.environ.get('URLHAUS_KEY', '')
     if not key:
         return None
     host = urllib.parse.urlparse(url if '://' in url else 'http://' + url).netloc
     if not host:
         return None
-    try:
-        result = _post_form(URLHAUS_URL, {'url': url}, auth=key)
-    except Exception:
-        result = None
+    # Check cache first (per-URL then per-host)
+    cache_key_url = f'urlhaus:url:{url}'
+    cache_key_host = f'urlhaus:host:{host}'
+    cached = _get_cached(cache_key_url) or _get_cached(cache_key_host)
+    if cached:
+        logger.debug('URLhaus cache hit for %s', url)
+        return cached
+
+    # Rate limit: ensure we don't exceed RATE_LIMIT_PER_MINUTE across calls
+    if not _rate_limit_allows():
+        logger.warning('URLhaus rate limit exceeded')
+        return {'status': 'unknown', 'source': 'URLhaus', 'detail': 'rate_limited'}
+
+    def _try_request(target):
+        headers = {'Auth-Key': key}
+        backoff = 1
+        for attempt in range(1, 4):
+            try:
+                logger.debug('URLhaus request attempt %d for %s', attempt, target)
+                r = requests.post(URLHAUS_URL, data={'url': target}, headers=headers, timeout=_TIMEOUT, verify=certifi.where())
+                if r.status_code == 200:
+                    try:
+                        return r.json() if r.text else None
+                    except Exception:
+                        logger.exception('Failed parsing JSON from URLhaus')
+                        return None
+                else:
+                    logger.debug('URLhaus returned status %s', r.status_code)
+                    # 401 likely means wrong header; don't retry many times
+                    if r.status_code == 401:
+                        return None
+            except requests.exceptions.SSLError as e:
+                logger.warning('URLhaus SSL error on attempt %d: %s', attempt, e)
+                # try unverified once
+                try:
+                    r = requests.post(URLHAUS_URL, data={'url': target}, headers=headers, timeout=_TIMEOUT, verify=False)
+                    if r.status_code == 200:
+                        try:
+                            return r.json() if r.text else None
+                        except Exception:
+                            logger.exception('Failed parsing JSON from URLhaus (unverified)')
+                            return None
+                except Exception as e2:
+                    logger.warning('URLhaus verify=False attempt failed: %s', e2)
+            except Exception as e:
+                logger.warning('URLhaus request error on attempt %d: %s', attempt, e)
+            time.sleep(backoff)
+            backoff *= 2
+        return None
+
+    result = _try_request(url)
     if not result:
-        result = _post_form(URLHAUS_URL, {'url': host}, auth=key)
-    if not result or result.get('query_status') not in ('200 OK', '0 results'):
-        return {'status': 'unknown', 'source': 'URLhaus', 'detail': 'No data / lookup failed'}
-    if result.get('query_status') == '0 results':
-        return {'status': 'clean', 'source': 'URLhaus', 'detail': 'No malware records'}
+        result = _try_request(host)
+
+    if not result or result.get('query_status') not in ('200 OK', '0 results', 'no_results'):
+        out = {'status': 'unknown', 'source': 'URLhaus', 'detail': 'No data / lookup failed'}
+        _set_cached(cache_key_url, out, ttl=CACHE_TTL_UNKNOWN)
+        return out
+    if result.get('query_status') in ('0 results', 'no_results'):
+        out = {'status': 'clean', 'source': 'URLhaus', 'detail': 'No malware records'}
+        _set_cached(cache_key_url, out, ttl=CACHE_TTL_CLEAN)
+        return out
     tags = result.get('tags') or []
-    return {
+    out = {
         'status': 'malicious',
         'source': 'URLhaus',
         'detail': f"Malware URL - tags: {', '.join(tags[:5])}" if tags else 'Malware URL',
         'urlhaus_id': result.get('urlhaus_reference'),
     }
+    _set_cached(cache_key_url, out, ttl=CACHE_TTL_MALICIOUS)
+    return out
 
 
 def check_url_safe_browsing(url):
@@ -231,15 +375,15 @@ def _http_text(url, data=None, headers=None, method=None):
         req = urllib.request.Request(url, data=data, headers=headers or {}, method=method)
         with urllib.request.urlopen(req, timeout=_TIMEOUT) as resp:
             return resp.read().decode('utf-8', 'replace')
-    except ssl.SSLError:
+    except Exception as e:
+        if not _is_ssl_failure(e):
+            return None
         try:
             req = urllib.request.Request(url, data=data, headers=headers or {}, method=method)
             with urllib.request.urlopen(req, timeout=_TIMEOUT, context=_UNVERIFIED_CTX) as resp:
                 return resp.read().decode('utf-8', 'replace')
         except Exception:
             return None
-    except Exception:
-        return None
 
 
 def check_password_pwned(password):

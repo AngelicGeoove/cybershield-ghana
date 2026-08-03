@@ -7,3 +7,4 @@ bcrypt==4.1.2
 reportlab==4.2.5
 firebase-admin==7.5.0
 requests==2.32.3
+certifi==2026.4.18
