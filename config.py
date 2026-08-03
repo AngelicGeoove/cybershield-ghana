@@ -2,6 +2,29 @@ import os
 import sys
 import secrets
 
+def load_local_env():
+    """Load optional secrets from a gitignored .env file next to the app.
+    Used for API keys (URLHAUS_KEY, etc.) that must NOT be committed.
+    Environment variables already set take precedence.
+    """
+    env_file = os.path.join(get_base_dir(), '.env')
+    if not os.path.exists(env_file):
+        return
+    try:
+        with open(env_file, 'r', encoding='utf-8') as fh:
+            for line in fh:
+                line = line.strip()
+                if not line or line.startswith('#') or '=' not in line:
+                    continue
+                key, _, value = line.partition('=')
+                key = key.strip()
+                value = value.strip().strip('"').strip("'")
+                if key and key not in os.environ:
+                    os.environ[key] = value
+    except OSError:
+        pass
+
+
 def get_base_dir():
     """Get the base directory, works for both script and PyInstaller exe."""
     if hasattr(sys, '_MEIPASS'):
@@ -40,6 +63,9 @@ def get_secret_key():
         pass  # Fall back to ephemeral key if we cannot persist
     return key
 
+# Load optional secrets (.env) BEFORE Config is defined so the class picks them up.
+load_local_env()
+
 class Config:
     SECRET_KEY = get_secret_key()
     UPLOAD_FOLDER = get_upload_folder()
@@ -48,6 +74,7 @@ class Config:
     # Firebase Web API key - public by design (used for the Auth REST endpoint)
     FIREBASE_WEB_API_KEY = os.environ.get('FIREBASE_WEB_API_KEY', 'AIzaSyBefRp77pRx93GvbhUQ9AZ0a4oX9hlZ7Tc')
     # Optional free threat-intel keys (empty = keyless checks only)
+    # Loaded from the gitignored .env file (load_local_env above) or env vars.
     GOOGLE_SAFE_BROWSING_KEY = os.environ.get('GOOGLE_SAFE_BROWSING_KEY', '')
     ABUSEIPDB_KEY = os.environ.get('ABUSEIPDB_KEY', '')
     URLHAUS_KEY = os.environ.get('URLHAUS_KEY', '')

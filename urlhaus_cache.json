@@ -1,0 +1,1 @@
+{"entries": {"urlhaus:url:http://example.com": {"ts": 1785745069.2554321, "ttl": 86400, "value": {"status": "clean", "source": "URLhaus", "detail": "No malware records"}}}, "requests": [1785745067.957435]}

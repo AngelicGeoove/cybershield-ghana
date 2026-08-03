@@ -1,6 +1,9 @@
 # Firebase service account key - NEVER commit this
 firebase-adminsdk.json
 
+# Local secrets / API keys - NEVER commit this
+.env
+
 # Python
 __pycache__/
 *.py[cod]

@@ -4,6 +4,8 @@ from services import firebase_service as fb
 from datetime import datetime
 from routes.permissions import require_roles
 import os
+from flask import jsonify
+from services import threat_intel
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -189,3 +191,18 @@ def toggle_channel(channel_id):
     fb.toggle_channel(channel_id)
     flash('Channel updated.', 'info')
     return redirect(url_for('admin.dashboard'))
+
+
+@admin_bp.route('/admin/purge-urlhaus-cache', methods=['POST'])
+def purge_urlhaus_cache():
+    """Admin-only endpoint to purge the local URLhaus cache file."""
+    path = os.path.join(os.path.dirname(__file__), '..', threat_intel.CACHE_FILENAME)
+    path = os.path.abspath(path)
+    try:
+        if os.path.exists(path):
+            os.remove(path)
+        flash('URLhaus cache purged.', 'success')
+        return jsonify({'success': True})
+    except Exception:
+        flash('Failed to purge cache.', 'error')
+        return jsonify({'success': False}), 500
