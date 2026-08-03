@@ -37,3 +37,7 @@ CyberShieldGhana.exe
 .DS_Store
 Thumbs.db
 test_*.ps1
+CyberShieldGhana.zip
+build_exe.bat
+run_desktop.bat
+README_DESKTOP.md
